@@ -1,4 +1,3 @@
-lines = open("input.txt").read().splitlines()
 boss_hp = 104
 boss_damage = 8
 boss_armor = 1
