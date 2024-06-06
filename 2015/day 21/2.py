@@ -1,11 +1,10 @@
 lines = open("input.txt").read().splitlines()
-boss_hp = int(lines[0].split(": ")[1])
-boss_damage = int(lines[1].split(": ")[1])
-boss_armor = int(lines[2].split(": ")[1])
+boss_hp = 104
+boss_damage = 8
+boss_armor = 1
 player_hp = 100
 
 weapons = [
-    [0 ,0, 0],
     [8, 4, 0],
     [10, 5, 0],
     [25, 6, 0],
@@ -42,10 +41,7 @@ for weapon in weapons:
                 c = weapon[0] + armor[0] + ring1[0] + ring2[0]
                 d = weapon[1] + armor[1] + ring1[1] + ring2[1]
                 a = weapon[2] + armor[2] + ring1[2] + ring2[2]
-                rounds_player_win = -(boss_hp // -max(1, d - boss_armor))
-                rounds_player_loose = -(player_hp // -max(1, boss_damage - a))
-                if rounds_player_win > rounds_player_loose:
-
+                if -((boss_hp - 1) // -max(1, d - boss_armor)) > -((player_hp - 1) // -max(1, boss_damage - a)):
                     if c > max_cost:
                         max_cost = c
 
