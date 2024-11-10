@@ -1,7 +1,3 @@
-//
-// Created by Konstantin Kilbel on 18.12.23.
-//
-
 #include "../includes.h"
 #include "day18.h"
 #include <sstream>

@@ -1,10 +1,7 @@
-//
-// Created by Konstantin Kilbel on 21.12.23.
-//
-
 #include "../includes.h"
 #include "day21.h"
-#include <assert.h>
+
+#include <cassert>
 
 vector<int> day21::addVector(const vector<int>& v1, const vector<int>& v2) {
     return {v1[0] + v2[0], v1[1] + v2[1]};

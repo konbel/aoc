@@ -1,11 +1,7 @@
-//
-// Created by Konstantin Kilbel on 20.12.23.
-//
-
 #include "../includes.h"
 #include "day20.h"
 
-#include <assert.h>
+#include <cassert>
 #include <__numeric/gcd_lcm.h>
 
 int day20::pushButton(map<string, Module>& modules, const int& count) {

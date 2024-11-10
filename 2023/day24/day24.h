@@ -1,7 +1,3 @@
-//
-// Created by Konstantin Kilbel on 24.12.23.
-//
-
 #ifndef DAY24_H
 #define DAY24_H
 

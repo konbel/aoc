@@ -1,7 +1,3 @@
-//
-// Created by Konstantin Kilbel on 15.12.23.
-//
-
 #include "../includes.h"
 #include "day15.h"
 

@@ -1,11 +1,5 @@
-//
-// Created by Konstantin Kilbel on 07.12.23.
-//
-
 #include "../includes.h"
 #include "day6.h"
-
-#include <string>
 
 void day6::solve(std::string input) {
     std::ifstream file(input);

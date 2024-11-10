@@ -1,11 +1,5 @@
-//
-// Created by Konstantin Kilbel on 23.12.23.
-//
-
 #ifndef DAY23_H
 #define DAY23_H
-
-#include <set>
 
 namespace day23 {
     struct Step {

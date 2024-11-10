@@ -1,10 +1,5 @@
-//
-// Created by Konstantin Kilbel on 12.12.23.
-//
-
 #include "../includes.h"
 #include "day12.h"
-#include <unordered_map>
 
 std::unordered_map<string, long> cacheP1;
 std::unordered_map<string, long> cacheP2;

@@ -1,11 +1,5 @@
-//
-// Created by Konstantin Kilbel on 07.12.23.
-//
-
 #include "../includes.h"
 #include "day7.h"
-
-#include <stdnoreturn.h>
 
 constexpr int FIVE_OF_A_KIND = 7;
 constexpr int FOUR_OF_A_KIND = 6;

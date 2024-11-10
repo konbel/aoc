@@ -1,10 +1,5 @@
-//
-// Created by Konstantin Kilbel on 05.12.23.
-//
-
-#include "../includes.h";
+#include "../includes.h"
 #include "day2.h"
-#include <vector>
 
 std::pair<std::string, int> parseValue(std::string currentValueString) {
     const size_t i = currentValueString.find(" ");

@@ -1,11 +1,5 @@
-//
-// Created by Konstantin Kilbel on 23.12.23.
-//
-
 #include "../includes.h"
 #include "day23.h"
-
-#include <queue>
 
 int day23::getLongestPath(const vector<string>& grid) {
     const vector start = {static_cast<int>(grid[0].find('.')), 0};

@@ -1,10 +1,5 @@
-//
-// Created by Konstantin Kilbel on 19.12.23.
-//
-
 #include "../includes.h"
 #include "day19.h"
-#include <unordered_map>
 
 using day19::Condition;
 using day19::Function;

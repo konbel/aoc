@@ -1,12 +1,5 @@
-//
-// Created by Konstantin Kilbel on 22.12.23.
-//
-
 #include "../includes.h"
 #include "day22.h"
-
-#include <deque>
-#include <set>
 
 using day22::Block;
 

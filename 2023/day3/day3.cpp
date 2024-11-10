@@ -1,13 +1,6 @@
-//
-// Created by Konstantin Kilbel on 05.12.23.
-//
-
 #include "../includes.h"
 #include "day3.h"
 
-#include <iostream>
-#include <fstream>
-#include <vector>
 #include <regex>
 
 bool FindSymbols(const std::vector<std::string>& inputList, int startX, int startY, int length) {

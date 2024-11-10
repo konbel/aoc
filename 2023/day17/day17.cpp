@@ -1,11 +1,5 @@
-//
-// Created by Konstantin Kilbel on 17.12.23.
-//
-
 #include "../includes.h"
 #include "day17.h"
-#include <queue>
-#include <set>
 
 int day17::findPathP1(const vector<string>& map) {
     std::set<std::tuple<int, int, int, int, int>> seen;

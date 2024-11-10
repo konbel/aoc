@@ -1,7 +1,3 @@
-//
-// Created by Konstantin Kilbel on 24.12.23.
-//
-
 #include "../includes.h"
 #include "day24.h"
 

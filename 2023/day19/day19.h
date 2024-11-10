@@ -1,7 +1,3 @@
-//
-// Created by Konstantin Kilbel on 19.12.23.
-//
-
 #ifndef DAY19_H
 #define DAY19_H
 
