@@ -1,103 +1,107 @@
 #include "../includes.h"
 #include "day5.h"
 
-std::vector<long> parseNumbers(std::string line) {
+std::vector<long> parse_numbers(const std::string &line) {
     std::vector<long> numbers;
     std::string currentNumber;
-    for (long i = 0; i < line.size(); i++) {
-        if (isdigit(line[i])) currentNumber += line[i];
-        else {
+
+    for (const char c : line) {
+        if (isdigit(c)) {
+            currentNumber += c;
+        } else {
             if (!currentNumber.empty()) {
                 numbers.push_back(std::stol(currentNumber));
                 currentNumber = "";
             }
         }
     }
-    numbers.push_back(std::stoi(currentNumber));
+
+    numbers.push_back(std::stol(currentNumber));
 
     return numbers;
 }
 
-void day5::solve(std::string input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
-        // get seeds
+void map_value(std::vector<std::vector<long>> maps[7], long &lowest_location, long value) {
+    for (int i = 0; i < 7; i++) {
+        if (value > lowest_location) return;
+
+        const auto &map = maps[i];
+
+        for (auto entry : map) {
+            const long destination_start = entry[0];
+            const long source_start = entry[1];
+
+            if (value < source_start || value > source_start + entry[2] - 1) continue;
+
+            const long offset_to_source_start = value - source_start;
+            value = destination_start + offset_to_source_start;
+
+            break;
+        }
+    }
+
+    if (value < lowest_location) {
+        lowest_location = value;
+    }
+}
+
+void day5::solve(const std::string &input) {
+    if (std::ifstream file(input); file.is_open()) {
         std::string seedsString;
         getline(file, seedsString);
 
-        seedsString.erase(0, seedsString.find(":") + 2);
-        if (seedsString[0] == ' ') seedsString.erase(0, 1);
+        seedsString.erase(0, seedsString.find(':') + 2);
 
-        std::vector<long> seeds = parseNumbers(seedsString);
+        std::vector<long> seeds = parse_numbers(seedsString);
 
         // parse maps
-        std::vector<std::vector<std::vector<long>>> maps;
+        std::vector<std::vector<long>> maps[7];
 
-        std::string currentLine;
-        std::vector<std::vector<long>> currentMap;
-        while (getline(file, currentLine)) {
-            if (isalpha(currentLine[0])) continue;
-            if (currentLine.empty()) {
-                if (!currentMap.empty()) {
-                    maps.push_back(currentMap);
-                    currentMap.clear();
-                }
+        int index = -1; // -1 to account for the empty line between seeds and maps
+        std::string line;
+
+        while (getline(file, line)) {
+            if (isalpha(line[0])) continue;
+            if (line.empty()) {
+                index++;
                 continue;
             }
 
-            currentMap.push_back(parseNumbers(currentLine));
-        }
-        maps.push_back(currentMap);
-
-        // evaluate mappings - problem 1
-        std::vector<long> resultP1 = seeds;
-        for (long& seed : resultP1) {
-            for (auto map : maps) {
-                bool seedSet = false;
-                for (auto mapping : map) {
-                    if (seed >= mapping[1] && seed <= mapping[1] + mapping[2]) {
-                        seed = mapping[0] + (seed - mapping[1]);
-                        seedSet = true;
-                    }
-
-                    if (seedSet) break;
-                }
-            }
+            maps[index].push_back(parse_numbers(line));
         }
 
-        // evaluate mappings - problem 2
-        std::vector<std::vector<long>> ranges;
+        // map all seeds to a location
+        long lowest_location_1 = 999999999999999;
+        for (auto seed : seeds) {
+            map_value(maps, lowest_location_1, seed);
+        }
+
+        // select seeds from ranges
+        std::vector<long> seeds2;
+
         for (int i = 0; i < seeds.size(); i += 2) {
-            std::vector<long> currentRange;
-            for (int j = 0; j < seeds[i + 1]; j++) currentRange.push_back(seeds[i] + j);
-            ranges.push_back(currentRange);
-        }
+            const long seed_range_start = seeds[i];
+            const long seed_range_end = seed_range_start + seeds[i + 1] - 1;
 
-        // parallization refused to work so this is really slow
-        for (std::size_t i = 0; i < ranges.size(); ++i) {
-            auto& range = ranges[i];
-            for (auto& seed : range) {
-                for (auto map : maps) {
-                    bool seedSet = false;
-                    for (auto mapping : map) {
-                        if (seed >= mapping[1] && seed <= mapping[1] + mapping[2]) {
-                            seed = mapping[0] + (seed - mapping[1]);
-                            seedSet = true;
-                        }
+            seeds2.push_back(seed_range_start);
 
-                        if (seedSet) break;
-                    }
-                }
+            for (auto entry : maps[0]) {
+                const long source_start = entry[1];
+                const long source_end = source_start + entry[2] - 1;
+
+                if (seed_range_start > source_end) continue;
+                if (source_start >= seed_range_start && source_start <= seed_range_end) seeds2.push_back(source_start);
             }
         }
 
-        std::vector<long> resultP2;
-        for (auto range : ranges) {
-            for (auto result : range) resultP2.push_back(result);
+        // map all selected seeds to a location
+        long lowest_location_2 = 999999999999999;
+        for (auto seed : seeds2) {
+            map_value(maps, lowest_location_2, seed);
         }
 
-        std::cout << "Solution problem 1: " << std::ranges::min(resultP1) << std::endl;
-        std::cout << "Solution problem 2: " << std::ranges::min(resultP2) << std::endl;
+        std::cout << "Solution problem 1: " << lowest_location_1 << std::endl;
+        std::cout << "Solution problem 2: " << lowest_location_2 << std::endl;
 
         file.close();
     } else std::cout << "Can't open file" << std::endl;
