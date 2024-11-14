@@ -2,9 +2,7 @@
 #define DAY13_H
 
 namespace day13 {
-    int checkMirrorP1(vector<string> rows);
-    int checkMirrorP2(vector<string> rows);
-    void solve(string input);
+    void solve(const std::string &input);
 }
 
 #endif //DAY13_H

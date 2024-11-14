@@ -9,7 +9,7 @@ constexpr int TWO_PAIR = 3;
 constexpr int ONE_PAIR = 2;
 constexpr int HIGH_CARD = 1;
 
-std::map<char, int> cardValues = {
+map<char, int> card_values = {
     {'A', 13},
     {'K', 12},
     {'Q', 11},
@@ -25,134 +25,133 @@ std::map<char, int> cardValues = {
     {'2', 1}
 };
 
-int valueHandP1(std::string hand) {
-    std::unordered_map<char, int> cardCounts;
-    for (char card : hand) cardCounts[card]++;
+static int value_hand_p1(string hand) {
+    std::unordered_map<char, int> card_counts;
+    for (char card : hand) card_counts[card]++;
 
-    if (cardCounts.size() == 1) return FIVE_OF_A_KIND;
-    if (cardCounts.size() == 5) return HIGH_CARD;
+    if (card_counts.size() == 1) return FIVE_OF_A_KIND;
+    if (card_counts.size() == 5) return HIGH_CARD;
 
-    int count2Pair = 0;
-    int countTrips = 0;
-    int countQuads = 0;
-    for (auto i : cardCounts) {
-        if (i.second == 2) count2Pair++;
-        if (i.second == 3) countTrips++;
-        if (i.second == 4) countQuads++;;
+    int count_2_pair = 0;
+    int count_trips = 0;
+    int count_quads = 0;
+    for (auto i : card_counts) {
+        if (i.second == 2) count_2_pair++;
+        if (i.second == 3) count_trips++;
+        if (i.second == 4) count_quads++;;
     }
 
-    if (countQuads == 1) return FOUR_OF_A_KIND;
-    if (countTrips == 1 && count2Pair == 1) return FULL_HOUSE;
-    if (countTrips == 1) return THREE_OF_A_KIND;
-    if (count2Pair == 2) return TWO_PAIR;
-    if (count2Pair == 1) return ONE_PAIR;
+    if (count_quads == 1) return FOUR_OF_A_KIND;
+    if (count_trips == 1 && count_2_pair == 1) return FULL_HOUSE;
+    if (count_trips == 1) return THREE_OF_A_KIND;
+    if (count_2_pair == 2) return TWO_PAIR;
+    if (count_2_pair == 1) return ONE_PAIR;
 
     return HIGH_CARD;
 }
 
-int valueHandP2(std::string hand) {
-    std::unordered_map<char, int> cardCounts;
-    for (char card : hand) cardCounts[card]++;
+static int value_hand_p2(string hand) {
+    std::unordered_map<char, int> card_counts;
+    for (char card : hand) card_counts[card]++;
 
-    if (cardCounts.size() == 5) {
-        if (cardCounts['J'] == 1) return ONE_PAIR;
+    if (card_counts.size() == 5) {
+        if (card_counts['J'] == 1) return ONE_PAIR;
         return HIGH_CARD;
     }
 
-    if (cardCounts.size() == 4) {
-        if (cardCounts['J'] == 1 || cardCounts['J'] == 2) return THREE_OF_A_KIND;
+    if (card_counts.size() == 4) {
+        if (card_counts['J'] == 1 || card_counts['J'] == 2) return THREE_OF_A_KIND;
         return ONE_PAIR;
     }
 
-    if (cardCounts.size() == 3) {
-        for (auto cardCount : cardCounts) {
+    if (card_counts.size() == 3) {
+        for (auto cardCount : card_counts) {
             if (cardCount.second == 3) {
-                if (cardCount.first == 'J' || cardCounts['J'] == 1) return FOUR_OF_A_KIND;
+                if (cardCount.first == 'J' || card_counts['J'] == 1) return FOUR_OF_A_KIND;
                 return THREE_OF_A_KIND;
             }
 
             if (cardCount.second == 2) {
-                if (cardCount.first == 'J' || cardCounts['J'] == 2) return FOUR_OF_A_KIND;
-                if (cardCounts['J'] == 1) return FULL_HOUSE;
+                if (cardCount.first == 'J' || card_counts['J'] == 2) return FOUR_OF_A_KIND;
+                if (card_counts['J'] == 1) return FULL_HOUSE;
                 return TWO_PAIR;
             }
         }
     }
 
-    if (cardCounts.size() == 2) {
-        for (auto cardCount : cardCounts) {
+    if (card_counts.size() == 2) {
+        for (auto cardCount : card_counts) {
             if (cardCount.second == 4) {
-                if (cardCount.first == 'J' || cardCounts['J'] == 1) return FIVE_OF_A_KIND;
+                if (cardCount.first == 'J' || card_counts['J'] == 1) return FIVE_OF_A_KIND;
                 return FOUR_OF_A_KIND;
             }
 
             if (cardCount.second == 3) {
-                if (cardCount.first == 'J' || cardCounts['J'] == 2) return FIVE_OF_A_KIND;
+                if (cardCount.first == 'J' || card_counts['J'] == 2) return FIVE_OF_A_KIND;
                 return FULL_HOUSE;
             }
         }
     }
 
-    if (cardCounts.size() == 1) return FIVE_OF_A_KIND;
+    if (card_counts.size() == 1) return FIVE_OF_A_KIND;
 }
 
-bool compareHand(std::string firstHand, std::string secondHand, bool p2) {
-    auto _carValues = cardValues;
-    if (p2) _carValues['J'] = -1;
+static bool compare_hand(string first_hand, string second_hand, bool p2) {
+    auto _card_values = card_values;
+    if (p2) _card_values['J'] = -1;
 
-    const int valueFirstHand = p2 ? valueHandP2(firstHand) : valueHandP1(firstHand);
-    const int valueSecondHand = p2 ? valueHandP2(secondHand) : valueHandP1(secondHand);
+    const int value_first_hand = p2 ? value_hand_p2(first_hand) : value_hand_p1(first_hand);
+    const int value_second_hand = p2 ? value_hand_p2(second_hand) : value_hand_p1(second_hand);
 
-    if (valueFirstHand > valueSecondHand) return true;
-    if (valueSecondHand == valueFirstHand) {
-        for (int k = 0; k < firstHand.size(); k++) {
-            char firstChar = firstHand[k];
-            char secondChar = secondHand[k];
+    if (value_first_hand > value_second_hand) return true;
+    if (value_second_hand == value_first_hand) {
+        for (int k = 0; k < first_hand.size(); k++) {
+            char firstChar = first_hand[k];
+            char secondChar = second_hand[k];
 
-            if (_carValues[firstChar] > _carValues[secondChar]) return true;
-            if (_carValues[firstChar] < _carValues[secondChar]) return false;
+            if (_card_values[firstChar] > _card_values[secondChar]) return true;
+            if (_card_values[firstChar] < _card_values[secondChar]) return false;
         }
     }
 
     return false;
 }
 
-void day7::solve(std::string input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
-        std::vector<std::pair<std::string, int>> hands;
+void day7::solve(const string &input) {
+    if (std::ifstream file(input); file.is_open()) {
+        vector<pair<string, int>> hands;
 
-        std::string currentLine;
-        while(getline(file, currentLine)) {
-            const int delimiter = currentLine.find(" ");
-            std::string hand = currentLine.substr(0, delimiter);
-            int bid = std::stoi(currentLine.substr(delimiter + 1, currentLine.size()));
-            hands.push_back(std::pair<std::string, int>(hand, bid));
+        string current_line;
+        while(getline(file, current_line)) {
+            const int delimiter = current_line.find(" ");
+            string hand = current_line.substr(0, delimiter);
+            int bid = std::stoi(current_line.substr(delimiter + 1, current_line.size()));
+            hands.push_back(pair<string, int>(hand, bid));
         }
 
-        std::vector<std::pair<std::string, int>> handsP1(hands.size());
-        std::vector<std::pair<std::string, int>> handsP2(hands.size());
+        vector<pair<string, int>> hands_p1(hands.size());
+        vector<pair<string, int>> hands_p2(hands.size());
         for (int i = 0; i < hands.size(); i++) {
-            int worseCardsP1 = 0;
-            int worseCardsP2 = 0;
+            int worse_cards_p1 = 0;
+            int worse_cards_p2 = 0;
             for (int j = 0; j < hands.size(); j++) {
                 if (i == j) continue;
-                if (compareHand(hands[i].first, hands[j].first, false)) worseCardsP1++;
-                if (compareHand(hands[i].first, hands[j].first, true)) worseCardsP2++;
+                if (compare_hand(hands[i].first, hands[j].first, false)) worse_cards_p1++;
+                if (compare_hand(hands[i].first, hands[j].first, true)) worse_cards_p2++;
             }
 
-            handsP1[worseCardsP1] = hands[i];
-            handsP2[worseCardsP2] = hands[i];
+            hands_p1[worse_cards_p1] = hands[i];
+            hands_p2[worse_cards_p2] = hands[i];
         }
 
-        int resultP1;
-        for (int i = 0; i < handsP1.size(); i++) resultP1 += handsP1[i].second * (i + 1);
+        int result_p1;
+        for (int i = 0; i < hands_p1.size(); i++) result_p1 += hands_p1[i].second * (i + 1);
 
-        int resultP2;
-        for (int i = 0; i < handsP2.size(); i++) resultP2 += handsP2[i].second * (i + 1);
+        int result_p2;
+        for (int i = 0; i < hands_p2.size(); i++) result_p2 += hands_p2[i].second * (i + 1);
 
-        std::cout << "Solution problem 1: " << resultP1 << std::endl;
-        std::cout << "Solution problem 2: " << resultP2 << std::endl;
+        std::cout << "Solution problem 1: " << result_p1 << std::endl;
+        std::cout << "Solution problem 2: " << result_p2 << std::endl;
 
         file.close();
     } else std::cout << "Can't open file" << std::endl;

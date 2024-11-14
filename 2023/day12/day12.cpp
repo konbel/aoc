@@ -1,10 +1,10 @@
 #include "../includes.h"
 #include "day12.h"
 
-std::unordered_map<string, long> cacheP1;
-std::unordered_map<string, long> cacheP2;
+std::unordered_map<string, long> cache_p1;
+std::unordered_map<string, long> cache_p2;
 
-long day12::countArrangements(string springs, std::deque<long> nums, bool p2) {
+static long count_arrangements(string springs, std::deque<long> nums, bool p2) {
     if (springs.empty()) {
         if (nums.empty()) return 1;
         return 0;
@@ -18,36 +18,35 @@ long day12::countArrangements(string springs, std::deque<long> nums, bool p2) {
     string key = springs;
     for (const long i : nums) key += std::to_string(i) + "_";
 
-    auto& currentCache = p2 ? cacheP2 : cacheP1;
+    auto& current_cache = p2 ? cache_p2 : cache_p1;
 
-    if (currentCache.contains(key)) return currentCache[key];
+    if (current_cache.contains(key)) return current_cache[key];
 
     long result = 0;
 
     if (springs[0] == '.' || springs[0] == '?') {
-        result += countArrangements(springs.substr(1, springs.size() - 1), nums, p2);
+        result += count_arrangements(springs.substr(1, springs.size() - 1), nums, p2);
     }
 
     if (springs[0] == '#' || springs[0] == '?') {
         if (nums[0] <= springs.size() && springs.substr(0, nums[0]).find('.') == string::npos && (nums[0] == springs.size() || springs[nums[0]] != '#')) {
-            std::deque<long> copyNums = nums;
-            copyNums.pop_front();
-            const string copySprings = nums[0] < springs.size() ? springs.substr(nums[0] + 1, springs.size() - nums[0] + 1) : "";
-            result += countArrangements(copySprings, copyNums, p2);
+            std::deque<long> copy_nums = nums;
+            copy_nums.pop_front();
+            const string copy_strings = nums[0] < springs.size() ? springs.substr(nums[0] + 1, springs.size() - nums[0] + 1) : "";
+            result += count_arrangements(copy_strings, copy_nums, p2);
         }
     }
 
-    currentCache.insert(std::pair<string, long>(key, result));
+    current_cache.insert(pair<string, long>(key, result));
 
     return result;
 }
 
 
-void day12::solve(string input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
-        long resultP1;
-        long resultP2;
+void day12::solve(const string &input) {
+    if (std::ifstream file(input); file.is_open()) {
+        long result_p1;
+        long result_p2;
 
         string line;
         while (getline(file, line)) {
@@ -56,31 +55,31 @@ void day12::solve(string input) {
             string counts = line.substr(seperator + 1, line.size() - 1);
             counts += ',';
 
-            std::deque<long> springCount;
+            std::deque<long> spring_count;
             string num;
             for (int i = 0; i < counts.size(); i++) {
                 char c = counts[i];
                 if (c == ',') {
-                    springCount.push_back(std::stol(num));
+                    spring_count.push_back(std::stol(num));
                     num.clear();
                 } else num += c;
             }
 
-            resultP1 += countArrangements(springs, springCount, false);
+            result_p1 += count_arrangements(springs, spring_count, false);
 
-            string springsP2;
-            std::deque<long> springCountP2;
+            string springs_p2;
+            std::deque<long> spring_count_p2;
             for (int i = 0; i < 5; i++) {
-                springsP2 += springs + '?';
-                for (long j : springCount) springCountP2.push_back(j);
+                springs_p2 += springs + '?';
+                for (long j : spring_count) spring_count_p2.push_back(j);
             }
-            springsP2.pop_back();
+            springs_p2.pop_back();
 
-            resultP2 += countArrangements(springsP2, springCountP2, true);
+            result_p2 += count_arrangements(springs_p2, spring_count_p2, true);
         }
 
-        cout << "Solution problem 1: " << resultP1 << endl;
-        cout << "Solution problem 2: " << resultP2 << endl;
+        std::cout << "Solution problem 1: " << result_p1 << std::endl;
+        std::cout << "Solution problem 2: " << result_p2 << std::endl;
 
-    } else cout << "Can't open file" << endl;
+    } else std::cout << "Can't open file" << std::endl;
 }

@@ -2,8 +2,7 @@
 #include "day25.h"
 
 void day25::solve(const string& input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
+    if (std::ifstream file(input); file.is_open()) {
         map<string, vector<string>> modules;
 
         string line;
@@ -25,5 +24,5 @@ void day25::solve(const string& input) {
         }
 
         file.close();
-    } else cout << "Can't open file" << endl;
+    } else std::cout << "Can't open file" << std::endl;
 }

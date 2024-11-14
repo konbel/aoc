@@ -10,8 +10,6 @@
 #include <set>
 #include <unordered_map>
 
-using std::cout;
-using std::endl;
 using std::string;
 using std::vector;
 using std::map;

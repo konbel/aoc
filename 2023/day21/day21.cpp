@@ -3,129 +3,128 @@
 
 #include <cassert>
 
-vector<int> day21::addVector(const vector<int>& v1, const vector<int>& v2) {
+static vector<int> add_vector(const vector<int>& v1, const vector<int>& v2) {
     return {v1[0] + v2[0], v1[1] + v2[1]};
 }
 
-bool day21::checkBounds(const int& maxX, const int& maxY, const vector<int>& position) {
-    if (position[0] >= 0 && position[0] < maxX && position[1] >= 0 && position[1] < maxY) return true;
+static bool check_bounds(const int& max_x, const int& max_y, const vector<int>& position) {
+    if (position[0] >= 0 && position[0] < max_x && position[1] >= 0 && position[1] < max_y) return true;
     return false;
 }
 
-int day21::takeSteps(vector<string>& garden, const vector<int>& startPosition, const int& stepsToTake) {
+static int take_steps(vector<string>& garden, const vector<int>& start_position, const int& steps_to_take) {
     const vector<vector<int>> directions = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
 
-    vector<vector<int>> moveQueue;
-    vector<vector<int>> newMoves;
-    moveQueue.push_back(startPosition);
+    vector<vector<int>> move_queue;
+    vector<vector<int>> new_moves;
+    move_queue.push_back(start_position);
 
-    for (int i = 0; i < stepsToTake; i++) {
-        while (!moveQueue.empty()) {
-            vector position = moveQueue[0];
+    for (int i = 0; i < steps_to_take; i++) {
+        while (!move_queue.empty()) {
+            vector position = move_queue[0];
 
             for (vector<int> direction : directions) {
-                vector<int> newPosition = addVector(position, direction);
-                if (!checkBounds(garden[0].size(), garden.size(), newPosition)) continue;
+                vector<int> new_position = add_vector(position, direction);
+                if (!check_bounds(garden[0].size(), garden.size(), new_position)) continue;
 
-                if (garden[newPosition[1]][newPosition[0]] == '.') {
-                    newMoves.push_back(newPosition);
-                    garden[newPosition[1]][newPosition[0]] = 'O';
+                if (garden[new_position[1]][new_position[0]] == '.') {
+                    new_moves.push_back(new_position);
+                    garden[new_position[1]][new_position[0]] = 'O';
                 }
             }
 
             garden[position[1]][position[0]] = '.';
-            moveQueue.erase(moveQueue.begin(), moveQueue.begin() + 1);
+            move_queue.erase(move_queue.begin(), move_queue.begin() + 1);
         }
 
-        moveQueue = newMoves;
-        newMoves.clear();
+        move_queue = new_moves;
+        new_moves.clear();
     }
 
-    int countReached = 0;
+    int count_reached = 0;
     for (const string& l : garden) {
         for (const char& c : l) {
-            if (c == 'O') countReached++;
+            if (c == 'O') count_reached++;
         }
     }
 
-    return countReached;
+    return count_reached;
 }
-long long day21::calcSteps(vector<string>& garden, const vector<int>& startPosition, const int& stepsToTake) {
+static long long calc_steps(vector<string>& garden, const vector<int>& start_position, const int& steps_to_take) {
     const vector<vector<int>> directions = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
 
     assert(garden.size() == garden[0].size());
     const int size = garden.size();
 
-    assert(stepsToTake % size == size / 2);
+    assert(steps_to_take % size == size / 2);
 
-    const long gridWidth = stepsToTake / size - 1;
-    const long odd = (gridWidth / 2 * 2 + 1) * (gridWidth / 2 * 2 + 1);
-    const long even = ((gridWidth + 1) / 2 * 2) * ((gridWidth + 1) / 2 * 2);
+    const long grid_width = steps_to_take / size - 1;
+    const long odd = (grid_width / 2 * 2 + 1) * (grid_width / 2 * 2 + 1);
+    const long even = ((grid_width + 1) / 2 * 2) * ((grid_width + 1) / 2 * 2);
 
-    vector<string> gardenCopy = garden;
-    const int odd_points = takeSteps(gardenCopy, startPosition, size * 2 + 1) * 2;
+    vector<string> garden_copy = garden;
+    const int odd_points = take_steps(garden_copy, start_position, size * 2 + 1) * 2;
 
-    gardenCopy = garden;
-    const int event_points = takeSteps(gardenCopy, startPosition, size * 2) * 2;
+    garden_copy = garden;
+    const int event_points = take_steps(garden_copy, start_position, size * 2) * 2;
 
-    gardenCopy = garden;
-    const int corner_t = takeSteps(gardenCopy, {startPosition[0], size - 1}, size - 1);
+    garden_copy = garden;
+    const int corner_t = take_steps(garden_copy, {start_position[0], size - 1}, size - 1);
 
-    gardenCopy = garden;
-    const int corner_r = takeSteps(gardenCopy, {0, startPosition[1]}, size - 1);
+    garden_copy = garden;
+    const int corner_r = take_steps(garden_copy, {0, start_position[1]}, size - 1);
 
-    gardenCopy = garden;
-    const int corner_b = takeSteps(gardenCopy, {startPosition[0], 0}, size - 1);
+    garden_copy = garden;
+    const int corner_b = take_steps(garden_copy, {start_position[0], 0}, size - 1);
 
-    gardenCopy = garden;
-    const int corner_l = takeSteps(gardenCopy, {size - 1, startPosition[1]}, size - 1);
-
-
-    gardenCopy = garden;
-    const int small_tr = takeSteps(gardenCopy, {0, size - 1}, size / 2 - 1);
-
-    gardenCopy = garden;
-    const int small_tl = takeSteps(gardenCopy, {size - 1, size - 1 }, size / 2 - 1);
-
-    gardenCopy = garden;
-    const int small_br = takeSteps(gardenCopy, {0, 0}, size / 2 - 1);
-
-    gardenCopy = garden;
-    const int small_bl = takeSteps(gardenCopy, {size - 1, 0}, size / 2 - 1);
+    garden_copy = garden;
+    const int corner_l = take_steps(garden_copy, {size - 1, start_position[1]}, size - 1);
 
 
-    gardenCopy = garden;
-    const int large_tr = takeSteps(gardenCopy, {0, size - 1}, size * 3 / 2 - 1);
+    garden_copy = garden;
+    const int small_tr = take_steps(garden_copy, {0, size - 1}, size / 2 - 1);
 
-    gardenCopy = garden;
-    const int large_tl = takeSteps(gardenCopy, {size - 1, size - 1 }, size * 3 / 2 - 1);
+    garden_copy = garden;
+    const int small_tl = take_steps(garden_copy, {size - 1, size - 1 }, size / 2 - 1);
 
-    gardenCopy = garden;
-    const int large_br = takeSteps(gardenCopy, {0, 0}, size * 3 / 2 - 1);
+    garden_copy = garden;
+    const int small_br = take_steps(garden_copy, {0, 0}, size / 2 - 1);
 
-    gardenCopy = garden;
-    const int large_bl = takeSteps(gardenCopy, {size - 1, 0}, size * 3 / 2 - 1);
+    garden_copy = garden;
+    const int small_bl = take_steps(garden_copy, {size - 1, 0}, size / 2 - 1);
+
+
+    garden_copy = garden;
+    const int large_tr = take_steps(garden_copy, {0, size - 1}, size * 3 / 2 - 1);
+
+    garden_copy = garden;
+    const int large_tl = take_steps(garden_copy, {size - 1, size - 1 }, size * 3 / 2 - 1);
+
+    garden_copy = garden;
+    const int large_br = take_steps(garden_copy, {0, 0}, size * 3 / 2 - 1);
+
+    garden_copy = garden;
+    const int large_bl = take_steps(garden_copy, {size - 1, 0}, size * 3 / 2 - 1);
 
     const long long result = odd * odd_points +
          even * event_points +
          corner_t + corner_r + corner_b + corner_l +
-         (gridWidth + 1) * (small_tr + small_tl + small_br + small_bl) +
-         gridWidth * (large_tl + large_tr + large_bl + large_br);
+         (grid_width + 1) * (small_tr + small_tl + small_br + small_bl) +
+         grid_width * (large_tl + large_tr + large_bl + large_br);
 
     return result;
 }
 
 void day21::solve(const string& input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
+    if (std::ifstream file(input); file.is_open()) {
         vector<string> garden;
-        vector<int> startPosition;
+        vector<int> start_position;
 
         string line;
         while (getline(file, line)) {
             for (int i = 0; i < line.size(); i++) {
                 if (line[i] == 'S') {
-                    startPosition = {i, static_cast<int>(garden.size())};
+                    start_position = {i, static_cast<int>(garden.size())};
                     line[i] = '.';
                     break;
                 }
@@ -133,11 +132,11 @@ void day21::solve(const string& input) {
             garden.push_back(line);
         }
 
-        const int resultP1 = takeSteps(garden, startPosition, 64);
-        const long long resultP2 = calcSteps(garden, startPosition, 26501365); // 594115391548176
+        const int result_p1 = take_steps(garden, start_position, 64);
+        const long long result_p2 = calc_steps(garden, start_position, 26501365); // 594115391548176
 
-        cout << "Solution problem 1: " << resultP1 << endl;
-        cout << "Solution problem 2: " << resultP2 << endl;
+        std::cout << "Solution problem 1: " << result_p1 << std::endl;
+        std::cout << "Solution problem 2: " << result_p2 << std::endl;
 
-    } else cout << "Can't open file" << endl;
+    } else std::cout << "Can't open file" << std::endl;
 }

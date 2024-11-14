@@ -1,27 +1,27 @@
 #include "../includes.h"
 #include "day5.h"
 
-std::vector<long> parse_numbers(const std::string &line) {
-    std::vector<long> numbers;
-    std::string currentNumber;
+static vector<long> parse_numbers(const string &line) {
+    vector<long> numbers;
+    string current_number;
 
     for (const char c : line) {
         if (isdigit(c)) {
-            currentNumber += c;
+            current_number += c;
         } else {
-            if (!currentNumber.empty()) {
-                numbers.push_back(std::stol(currentNumber));
-                currentNumber = "";
+            if (!current_number.empty()) {
+                numbers.push_back(std::stol(current_number));
+                current_number = "";
             }
         }
     }
 
-    numbers.push_back(std::stol(currentNumber));
+    numbers.push_back(std::stol(current_number));
 
     return numbers;
 }
 
-void map_value(std::vector<std::vector<long>> maps[7], long &lowest_location, long value) {
+static void map_value(vector<vector<long>> maps[7], long &lowest_location, long value) {
     for (int i = 0; i < 7; i++) {
         if (value > lowest_location) return;
 
@@ -45,20 +45,20 @@ void map_value(std::vector<std::vector<long>> maps[7], long &lowest_location, lo
     }
 }
 
-void day5::solve(const std::string &input) {
+void day5::solve(const string &input) {
     if (std::ifstream file(input); file.is_open()) {
-        std::string seedsString;
-        getline(file, seedsString);
+        string seeds_string;
+        getline(file, seeds_string);
 
-        seedsString.erase(0, seedsString.find(':') + 2);
+        seeds_string.erase(0, seeds_string.find(':') + 2);
 
-        std::vector<long> seeds = parse_numbers(seedsString);
+        vector<long> seeds = parse_numbers(seeds_string);
 
         // parse maps
-        std::vector<std::vector<long>> maps[7];
+        vector<vector<long>> maps[7];
 
         int index = -1; // -1 to account for the empty line between seeds and maps
-        std::string line;
+        string line;
 
         while (getline(file, line)) {
             if (isalpha(line[0])) continue;
@@ -77,7 +77,7 @@ void day5::solve(const std::string &input) {
         }
 
         // select seeds from ranges
-        std::vector<long> seeds2;
+        vector<long> seeds2;
 
         for (int i = 0; i < seeds.size(); i += 2) {
             const long seed_range_start = seeds[i];

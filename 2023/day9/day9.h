@@ -2,8 +2,7 @@
 #define DAY9_H
 
 namespace day9 {
-    void solve(std::string input);
-    std::vector<int> parseLine(std::string line);
+    void solve(const std::string &input);
 }
 
 #endif //DAY9_H

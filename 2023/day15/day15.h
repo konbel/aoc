@@ -2,8 +2,7 @@
 #define DAY15_H
 
 namespace day15 {
-    int hash(const string& toHash);
-    void solve(string input);
+    void solve(const std::string &input);
 }
 
 #endif //DAY15_H

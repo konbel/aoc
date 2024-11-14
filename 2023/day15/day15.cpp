@@ -1,9 +1,9 @@
 #include "../includes.h"
 #include "day15.h"
 
-int day15::hash(const string& toHash) {
+static int hash(const string& to_hash) {
     int hash = 0;
-    for (char c : toHash) {
+    for (char c : to_hash) {
         hash += static_cast<int>(c);
         hash *= 17;
         hash = hash % 256;
@@ -12,33 +12,32 @@ int day15::hash(const string& toHash) {
 }
 
 
-void day15::solve(string input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
+void day15::solve(const string &input) {
+    if (std::ifstream file(input); file.is_open()) {
         string line;
         getline(file, line);
         line += ',';
 
-        int resultP1 = 0;
+        int result_p1 = 0;
 
-        std::map<int, vector<std::pair<string, int>>> boxes;
+        map<int, vector<pair<string, int>>> boxes;
 
-        string toHash = "";
-        int hashResult = 0;
+        string to_hash = "";
+        int hash_result = 0;
         for (char c : line) {
             if (c == ',') {
                 // hash entire string
-                hashResult = hash(toHash);
-                resultP1 += hashResult;
+                hash_result = hash(to_hash);
+                result_p1 += hash_result;
 
                 // hash label
-                int posMinus = toHash.find('-');
-                int posEqual = toHash.find('=');
-                string label = posMinus == string::npos ? toHash.substr(0, posEqual) : toHash.substr(0, posMinus);
-                int hashLabel = hash(label);
+                int pos_minus = to_hash.find('-');
+                int pos_equal = to_hash.find('=');
+                string label = pos_minus == string::npos ? to_hash.substr(0, pos_equal) : to_hash.substr(0, pos_minus);
+                int hash_label = hash(label);
 
-                auto& box = boxes[hashLabel];
-                if (posMinus != string::npos) {
+                auto& box = boxes[hash_label];
+                if (pos_minus != string::npos) {
                     for (int i = 0; i < box.size(); i++) {
                         if (box[i].first == label) {
                             box.erase(box.begin() + i, box.begin() + i + 1);
@@ -46,36 +45,36 @@ void day15::solve(string input) {
                         }
                     }
                 } else {
-                    int focalLength = toHash[toHash.size() - 1] - '0';
+                    int focal_length = to_hash[to_hash.size() - 1] - '0';
 
                     bool found = false;
                     for (int i = 0; i < box.size(); i++) {
                         if (box[i].first == label) {
-                            box[i].second = focalLength;
+                            box[i].second = focal_length;
                             found = true;
                             break;
                         }
                     }
 
-                    if (!found) box.push_back(std::pair(label, focalLength));
+                    if (!found) box.push_back(pair(label, focal_length));
                 }
 
-                toHash = "";
+                to_hash = "";
                 continue;
             }
-            toHash += c;
+            to_hash += c;
         }
 
-        int resultP2 = 0;
+        int result_p2 = 0;
         for (int i = 0; i < boxes.size(); i++) {
             for (int j = 0; j < boxes[i].size(); j++) {
-                int focusingPower = (i + 1) * (j + 1) * boxes[i][j].second;
-                resultP2 += focusingPower;
+                int focusing_power = (i + 1) * (j + 1) * boxes[i][j].second;
+                result_p2 += focusing_power;
             }
         }
 
-        cout << "Solution problem 1: " << resultP1 << endl;
-        cout << "Solution problem 2: " << resultP2 << endl;
+        std::cout << "Solution problem 1: " << result_p1 << std::endl;
+        std::cout << "Solution problem 2: " << result_p2 << std::endl;
 
-    } else cout << "Can't open file" << endl;
+    } else std::cout << "Can't open file" << std::endl;
 }

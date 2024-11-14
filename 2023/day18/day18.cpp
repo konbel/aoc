@@ -2,7 +2,7 @@
 #include "day18.h"
 #include <sstream>
 
-vector<vector<long>> day18::calculateCorners(const vector<std::pair<char, int>>& steps) {
+static vector<vector<long>> calculate_corners(const vector<pair<char, int>>& steps) {
     vector<vector<long>> corners;
     corners.push_back({0, 0});
 
@@ -15,17 +15,17 @@ vector<vector<long>> day18::calculateCorners(const vector<std::pair<char, int>>&
         else if (steps[i].first == 'U') dy = -steps[i].second;
         else if (steps[i].first == 'D') dy = steps[i].second;
 
-        const int lastX = corners[corners.size() - 1][0];
-        const int lastY = corners[corners.size() - 1][1];
+        const int last_x = corners[corners.size() - 1][0];
+        const int last_y = corners[corners.size() - 1][1];
 
-        corners.push_back({lastX + dx, lastY + dy});
+        corners.push_back({last_x + dx, last_y + dy});
     }
 
     return corners;
 }
 
-long day18::calculateSurfaceArea(const vector<std::pair<char, int>>& steps) {
-    const vector<vector<long>> corners = calculateCorners(steps);
+static long calculate_surface_area(const vector<pair<char, int>>& steps) {
+    const vector<vector<long>> corners = calculate_corners(steps);
 
     long b = 0;
     for (int i = 0; i < steps.size(); i++) b += steps[i].second;
@@ -40,10 +40,9 @@ long day18::calculateSurfaceArea(const vector<std::pair<char, int>>& steps) {
 }
 
 void day18::solve(const string& input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
-        vector<std::pair<char, int>> stepsP1;
-        vector<std::pair<char, int>> stepsP2;
+    if (std::ifstream file(input); file.is_open()) {
+        vector<pair<char, int>> steps_p1;
+        vector<pair<char, int>> steps_p2;
 
         string line;
         while (getline(file, line)) {
@@ -51,29 +50,29 @@ void day18::solve(const string& input) {
             line.erase(0, 2);
 
             const int seperator = line.find(" ");
-            int stepsSmall = std::stoi(line.substr(0, seperator));
-            stepsP1.push_back(std::pair(directionP1, stepsSmall));
+            int steps_small = std::stoi(line.substr(0, seperator));
+            steps_p1.push_back(pair(directionP1, steps_small));
 
-            string hexString = line.substr(line.size() - 7, 6);
+            string hex_string = line.substr(line.size() - 7, 6);
 
-            int directionInt = hexString[hexString.size() - 1] - '0';
-            char directionP2;
-            if (directionInt == 0) directionP2 = 'R';
-            else if (directionInt == 1) directionP2 = 'D';
-            else if (directionInt == 2) directionP2 = 'L';
-            else if (directionInt == 3) directionP2 = 'U';
+            int direction_int = hex_string[hex_string.size() - 1] - '0';
+            char direction_p2;
+            if (direction_int == 0) direction_p2 = 'R';
+            else if (direction_int == 1) direction_p2 = 'D';
+            else if (direction_int == 2) direction_p2 = 'L';
+            else if (direction_int == 3) direction_p2 = 'U';
 
-            int stepsBig = 0;
+            int steps_big = 0;
             std::stringstream ss;
-            ss << std::hex << hexString.substr(0, 5);
-            ss >> stepsBig;
+            ss << std::hex << hex_string.substr(0, 5);
+            ss >> steps_big;
 
-            stepsP2.push_back(std::pair(directionP2, stepsBig));
+            steps_p2.push_back(pair(direction_p2, steps_big));
         }
 
-        cout << "Solution problem 1: " << calculateSurfaceArea(stepsP1) << endl;
-        cout << "Solution problem 2: " << calculateSurfaceArea(stepsP2) << endl;
+        std::cout << "Solution problem 1: " << calculate_surface_area(steps_p1) << std::endl;
+        std::cout << "Solution problem 2: " << calculate_surface_area(steps_p2) << std::endl;
 
         file.close();
-    } else cout << "Can't open file" << endl;
+    } else std::cout << "Can't open file" << std::endl;
 }

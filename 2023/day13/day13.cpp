@@ -1,7 +1,7 @@
 #include "../includes.h"
 #include "day13.h"
 
-int day13::checkMirrorP1(vector<string> rows) {
+static int check_mirror_p1(vector<string> rows) {
     for (int i = 1; i < rows.size(); i++) {
         vector<string> above(rows.begin(), rows.begin() + i);
         std::reverse(above.begin(), above.end());
@@ -17,7 +17,7 @@ int day13::checkMirrorP1(vector<string> rows) {
     return 0;
 }
 
-int day13::checkMirrorP2(vector<string> rows) {
+static int check_mirror_p2(vector<string> rows) {
     for (int i = 1; i < rows.size(); i++) {
         vector<string> above(rows.begin(), rows.begin() + i);
         std::reverse(above.begin(), above.end());
@@ -41,11 +41,10 @@ int day13::checkMirrorP2(vector<string> rows) {
 }
 
 
-void day13::solve(string input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
-        int resultP1 = 0;
-        int resultP2 = 0;
+void day13::solve(const string &input) {
+    if (std::ifstream file(input); file.is_open()) {
+        int result_p1 = 0;
+        int result_p2 = 0;
 
         vector<string> rows;
         vector<string> columns;
@@ -54,11 +53,11 @@ void day13::solve(string input) {
         while (getline(file, line)) {
             if (line.empty()) {
                 // check rows
-                resultP1 += checkMirrorP1(rows) * 100;
-                resultP1 += checkMirrorP1(columns);
+                result_p1 += check_mirror_p1(rows) * 100;
+                result_p1 += check_mirror_p1(columns);
 
-                resultP2 += checkMirrorP2(rows) * 100;
-                resultP2 += checkMirrorP2(columns);
+                result_p2 += check_mirror_p2(rows) * 100;
+                result_p2 += check_mirror_p2(columns);
 
                 columns.clear();
                 rows.clear();
@@ -75,15 +74,15 @@ void day13::solve(string input) {
             }
         }
 
-        resultP1 += checkMirrorP1(rows) * 100;
-        resultP1 += checkMirrorP1(columns);
+        result_p1 += check_mirror_p1(rows) * 100;
+        result_p1 += check_mirror_p1(columns);
 
-        resultP2 += checkMirrorP2(rows) * 100;
-        resultP2 += checkMirrorP2(columns);
+        result_p2 += check_mirror_p2(rows) * 100;
+        result_p2 += check_mirror_p2(columns);
 
-        cout << "solution problem 1: " << resultP1 << endl;
-        cout << "solution problem 1: " << resultP2 << endl;
+        std::cout << "solution problem 1: " << result_p1 << std::endl;
+        std::cout << "solution problem 1: " << result_p2 << std::endl;
 
         file.close();
-    } else cout << "Can't open file" << endl;
+    } else std::cout << "Can't open file" << std::endl;
 }

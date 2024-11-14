@@ -1,47 +1,79 @@
 #include "../includes.h"
 #include "day22.h"
 
-using day22::Block;
+struct Vector3D {
+    int x, y, z;
 
-bool day22::overlaps(const Block& b1, const Block& b2) {
+    Vector3D operator+ (const Vector3D& v2) const {
+        Vector3D v3 = *this;
+        v3.x += v2.x;
+        v3.y += v2.y;
+        v3.z += v2.z;
+        return v3;
+    }
+
+    bool operator== (const Vector3D& v2) const {
+        return this->x == v2.x && this->y == v2.y && this->z == v2.z;
+    }
+
+    friend std::ostream& operator<<(std::ostream& output, const Vector3D& v) {
+        output << "{" << v.x << ", " << v.y << ", " << v.z << "}";
+        return output;
+    }
+};
+
+struct Block {
+    Vector3D start, end;
+
+    bool operator== (const Block& b2) const {
+        return this->start == b2.start && this->end == b2.end;
+    }
+
+    friend std::ostream& operator<< (std::ostream& output, const Block& b) {
+        output << b.start << b.end;
+        return output;
+    }
+};
+
+static bool overlaps(const Block& b1, const Block& b2) {
     return std::max(b1.start.x, b2.start.x) <= std::min(b1.end.x, b2.end.x) && std::max(b1.start.y, b2.start.y) <= std::min(b1.end.y, b2.end.y);
 }
 
-vector<int> day22::disintegrate(const vector<Block>& blocks) {
-    vector<Block> blocksCopy = blocks;
-    std::ranges::sort(blocksCopy, [](const Block& a, const Block& b) { return a.start.z < b.start.z; });
+static vector<int> disintegrate(const vector<Block>& blocks) {
+    vector<Block> blocks_copy = blocks;
+    std::ranges::sort(blocks_copy, [](const Block& a, const Block& b) { return a.start.z < b.start.z; });
 
     for (int i = 0; i < blocks.size(); i++) {
-        Block& b1 = blocksCopy[i];
+        Block& b1 = blocks_copy[i];
 
         if (b1.start.z == 1 || b1.end.z == 1) continue;
 
-        int zAfterFall = 1;
+        int z_after_fall = 1;
 
         for (int j = 0; j < i; j++) {
-            const Block& b2 = blocksCopy[j];
+            const Block& b2 = blocks_copy[j];
 
-            if (overlaps(b1, b2)) zAfterFall = std::max(zAfterFall, b2.end.z + 1);
+            if (overlaps(b1, b2)) z_after_fall = std::max(z_after_fall, b2.end.z + 1);
         }
 
-        b1.end.z -= b1.start.z - zAfterFall;
-        b1.start.z = zAfterFall;
+        b1.end.z -= b1.start.z - z_after_fall;
+        b1.start.z = z_after_fall;
     }
 
-    std::ranges::sort(blocksCopy, [](const Block& a, const Block& b) { return a.start.z < b.start.z; });
+    std::ranges::sort(blocks_copy, [](const Block& a, const Block& b) { return a.start.z < b.start.z; });
 
     map<int, vector<int>> k_supports_v;
     map<int, vector<int>> v_supports_k;
 
-    for (int i = 0; i < blocksCopy.size(); i++) {
+    for (int i = 0; i < blocks_copy.size(); i++) {
         k_supports_v[i] = {};
         v_supports_k[i] = {};
     }
 
-    for (int i = 0; i < blocksCopy.size(); i++) {
-        const Block& b1 = blocksCopy[i];
+    for (int i = 0; i < blocks_copy.size(); i++) {
+        const Block& b1 = blocks_copy[i];
         for (int j = 0; j < i; j++) {
-            const Block& b2 = blocksCopy[j];
+            const Block& b2 = blocks_copy[j];
             if (overlaps(b1, b2) && b1.start.z == b2.end.z + 1) {
                 k_supports_v[j].push_back(i);
                 v_supports_k[i].push_back(j);
@@ -49,9 +81,9 @@ vector<int> day22::disintegrate(const vector<Block>& blocks) {
         }
     }
 
-    int canDisintegrate = 0;
-    int wouldFall = 0;
-    for (int i = 0; i < blocksCopy.size(); i++) {
+    int can_disintegrate = 0;
+    int would_fall = 0;
+    for (int i = 0; i < blocks_copy.size(); i++) {
         int multiple = 0;
         std::set<int> falling;
         std::deque<int> queue;
@@ -63,7 +95,7 @@ vector<int> day22::disintegrate(const vector<Block>& blocks) {
             }
         }
 
-        if (multiple == k_supports_v[i].size()) canDisintegrate += 1;
+        if (multiple == k_supports_v[i].size()) can_disintegrate += 1;
 
         while (!queue.empty()) {
             int j = queue.front();
@@ -82,26 +114,25 @@ vector<int> day22::disintegrate(const vector<Block>& blocks) {
             }
         }
 
-        wouldFall += falling.size();
+        would_fall += falling.size();
     }
 
-    return {canDisintegrate, wouldFall};
+    return {can_disintegrate, would_fall};
 }
 
-void day22::solve(string input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
+void day22::solve(const string &input) {
+    if (std::ifstream file(input); file.is_open()) {
         vector<Block> blocks;
 
         string line;
         while (getline(file, line)) {
             int seperator = line.find('~');
-            string vStr1 = line.substr(0, seperator) + ',';
-            string vStr2 = line.substr(seperator + 1, line.size()) + ',';
+            string v_str_1 = line.substr(0, seperator) + ',';
+            string v_str_2 = line.substr(seperator + 1, line.size()) + ',';
 
             vector<string> nums;
             string num;
-            for (char c : vStr1) {
+            for (char c : v_str_1) {
                 if (c == ',') {
                     nums.push_back(num);
                     num.clear();
@@ -114,7 +145,7 @@ void day22::solve(string input) {
 
             nums.clear();
             num.clear();
-            for (char c : vStr2) {
+            for (char c : v_str_2) {
                 if (c == ',') {
                     nums.push_back(num);
                     num.clear();
@@ -129,9 +160,9 @@ void day22::solve(string input) {
 
         vector results = disintegrate(blocks);
 
-        cout << "Solution problem 1:" << results[0] << endl;
-        cout << "Solution problem 1:" << results[1] << endl;
+        std::cout << "Solution problem 1:" << results[0] << std::endl;
+        std::cout << "Solution problem 1:" << results[1] << std::endl;
 
         file.close();
-    } else cout << "Can't open file" << endl;
+    } else std::cout << "Can't open file" << std::endl;
 }

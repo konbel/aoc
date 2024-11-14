@@ -2,7 +2,7 @@
 #define DAY3_H
 
 namespace day3 {
-    void solve(std::string input);
+    void solve(const std::string &input);
 }
 
 #endif //DAY3_H

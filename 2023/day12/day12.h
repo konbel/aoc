@@ -2,8 +2,7 @@
 #define DAY12_H
 
 namespace day12 {
-    long countArrangements(string springs, std::deque<long> nums, bool p2);
-    void solve(string input);
+    void solve(const std::string &input);
 }
 
 #endif //DAY12_H

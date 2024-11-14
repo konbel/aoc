@@ -40,8 +40,6 @@ namespace day23 {
         std::set<vector<int>> seen;
     };
 
-    int dfs(map<vector<int>, map<vector<int>, int>>& graph, const vector<int>& p, std::set<vector<int>>& seen, const vector<int>& end);
-    int getLongestPath(const vector<string>& grid);
     void solve(const string& input);
 }
 

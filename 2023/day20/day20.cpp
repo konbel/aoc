@@ -4,63 +4,88 @@
 #include <cassert>
 #include <__numeric/gcd_lcm.h>
 
-int day20::pushButton(map<string, Module>& modules, const int& count) {
-    int lowPulsesSent = 0;
-    int highPulsesSent = 0;
+enum ModuleType {
+    BROADCASTER,
+    FLIPFLOP,
+    CONJUNCTION
+};
+
+struct Module {
+    string name;
+    ModuleType type;
+    vector<string> destinations;
+    std::unordered_map<string, bool> memory;
+    bool isOn;
+};
+
+struct Pulse {
+    Pulse(const string& sender, const string& receiver, const bool& pulse) {
+        this->sender = sender;
+        this->receiver = receiver;
+        this->pulse = pulse;
+    }
+
+    string sender;
+    string receiver;
+    bool pulse;
+};
+
+static int push_button(map<string, Module>& modules, const int& count) {
+    int low_pulses_sent = 0;
+    int high_pulses_sent = 0;
 
     for (int i = 0; i < count; i++) {
-        vector<Pulse> pulseQueue;
+        vector<Pulse> pulse_queue;
 
-        pulseQueue.push_back(Pulse("button", "broadcaster", false));
-        // cout << "button -low -> boardcaster" << endl;
-        lowPulsesSent++;
+        pulse_queue.push_back(Pulse("button", "broadcaster", false));
+        low_pulses_sent++;
 
-        while (!pulseQueue.empty()) {
-            Pulse pulse = pulseQueue[0];
-            bool pulseToSend = pulse.pulse;
+        while (!pulse_queue.empty()) {
+            Pulse pulse = pulse_queue[0];
+            bool pulse_to_send = pulse.pulse;
 
             if (!modules.contains(pulse.receiver)) {
-                pulseQueue.erase(pulseQueue.begin(), pulseQueue.begin() + 1);
+                pulse_queue.erase(pulse_queue.begin(), pulse_queue.begin() + 1);
                 continue;
             }
             Module& module = modules[pulse.receiver];
 
-            if (module.type == FLIPFLOP) {
+            if (module.type == ModuleType::FLIPFLOP) {
                 if (pulse.pulse == false) {
                     module.isOn = !module.isOn;
-                    if (module.isOn == true) pulseToSend = true;
-                    else pulseToSend = false;
+                    if (module.isOn == true) pulse_to_send = true;
+                    else pulse_to_send = false;
                 } else {
-                    pulseQueue.erase(pulseQueue.begin(), pulseQueue.begin() + 1);
+                    pulse_queue.erase(pulse_queue.begin(), pulse_queue.begin() + 1);
                     continue;
                 }
-            } else if (module.type == CONJUNCTION) {
+            } else if (module.type == ModuleType::CONJUNCTION) {
                 module.memory[pulse.sender] = pulse.pulse;
-                int highPulses = 0;
-                for (auto [_, memoryPulse] : module.memory) {
-                    if (memoryPulse == true) highPulses++;
+                int high_pulses = 0;
+                for (auto [_, memory_pulse] : module.memory) {
+                    if (memory_pulse == true) high_pulses++;
                 }
 
-                if (highPulses == module.memory.size()) pulseToSend = false;
-                else pulseToSend = true;
+                if (high_pulses == module.memory.size()) pulse_to_send = false;
+                else pulse_to_send = true;
             }
 
             for (const string& destination : module.destinations) {
-                if (pulseToSend == true) highPulsesSent++;
-                else lowPulsesSent++;
+                if (pulse_to_send == true) high_pulses_sent++;
+                else low_pulses_sent++;
 
-                pulseQueue.push_back(Pulse(module.name, destination, pulseToSend));
-                // cout << pulse.receiver << " -" << (pulseToSend ? "high" : "low") << " -> " << destination << endl;
+                pulse_queue.push_back(Pulse(module.name, destination, pulse_to_send));
+                // std::cout << pulse.receiver << " -" << (pulse_to_send ? "high" : "low") << " -> " << destination << std::endl;
             }
 
-            pulseQueue.erase(pulseQueue.begin(), pulseQueue.begin() + 1);
+            pulse_queue.erase(pulse_queue.begin(), pulse_queue.begin() + 1);
         }
     }
 
-    return highPulsesSent * lowPulsesSent;
+    return high_pulses_sent * low_pulses_sent;
 }
 
-long day20::lowestToRX(map<string, Module>& modules) {
+static long lowest_to_rx(map<string, Module>& modules) {
     Module feed;
     for (const auto& pair : modules) {
         for (const string& destination : pair.second.destinations) {
@@ -71,7 +96,7 @@ long day20::lowestToRX(map<string, Module>& modules) {
         }
     }
 
-    map<string, int> cycleLengths;
+    map<string, int> cycle_lengths;
     map<string, int> seen;
     for (const auto& pair : modules) {
         for (const string& destination : pair.second.destinations) {
@@ -79,20 +104,20 @@ long day20::lowestToRX(map<string, Module>& modules) {
         }
     }
 
-    int buttonPresses = 0;
+    int button_presses = 0;
     while (true) {
-        buttonPresses++;
-        vector<Pulse> pulseQueue;
+        button_presses++;
+        vector<Pulse> pulse_queue;
 
-        pulseQueue.push_back(Pulse("button", "broadcaster", false));
-        // cout << "button -low -> boardcaster" << endl;
+        pulse_queue.push_back(Pulse("button", "broadcaster", false));
+        // std::cout << "button -low -> boardcaster" << std::endl;
 
-        while (!pulseQueue.empty()) {
-            Pulse pulse = pulseQueue[0];
-            bool pulseToSend = pulse.pulse;
+        while (!pulse_queue.empty()) {
+            Pulse pulse = pulse_queue[0];
+            bool pulse_to_send = pulse.pulse;
 
             if (!modules.contains(pulse.receiver)) {
-                pulseQueue.erase(pulseQueue.begin(), pulseQueue.begin() + 1);
+                pulse_queue.erase(pulse_queue.begin(), pulse_queue.begin() + 1);
                 continue;
             }
             Module& module = modules[pulse.receiver];
@@ -100,57 +125,56 @@ long day20::lowestToRX(map<string, Module>& modules) {
             if (pulse.receiver == feed.name && pulse.pulse == true) {
                 seen[pulse.sender]++;
 
-                if (!cycleLengths.contains(pulse.sender)) cycleLengths[pulse.sender] = buttonPresses;
-                else assert(buttonPresses == seen[pulse.sender] * cycleLengths[pulse.sender]);
+                if (!cycle_lengths.contains(pulse.sender)) cycle_lengths[pulse.sender] = button_presses;
+                else assert(button_presses == seen[pulse.sender] * cycle_lengths[pulse.sender]);
 
-                int hasValue = 0;
+                int has_value = 0;
                 for (const auto& value : seen) {
-                    if (value.second != 0) hasValue++;
+                    if (value.second != 0) has_value++;
                 }
 
-                if (hasValue == seen.size()) {
+                if (has_value == seen.size()) {
                     long x = 1;
-                    for (const auto& cycleLength : cycleLengths) x = std::lcm(x, cycleLength.second);
+                    for (const auto& cycle_length : cycle_lengths) x = std::lcm(x, cycle_length.second);
                     return x;
                 }
             }
 
-            if (module.type == FLIPFLOP) {
+            if (module.type == ModuleType::FLIPFLOP) {
                 if (pulse.pulse == false) {
                     module.isOn = !module.isOn;
-                    if (module.isOn == true) pulseToSend = true;
-                    else pulseToSend = false;
+                    if (module.isOn == true) pulse_to_send = true;
+                    else pulse_to_send = false;
                 } else {
-                    pulseQueue.erase(pulseQueue.begin(), pulseQueue.begin() + 1);
+                    pulse_queue.erase(pulse_queue.begin(), pulse_queue.begin() + 1);
                     continue;
                 }
-            } else if (module.type == CONJUNCTION) {
+            } else if (module.type == ModuleType::CONJUNCTION) {
                 module.memory[pulse.sender] = pulse.pulse;
-                int highPulses = 0;
-                for (auto [_, memoryPulse] : module.memory) {
-                    if (memoryPulse == true) highPulses++;
+                int high_pulses = 0;
+                for (auto [_, memory_pulse] : module.memory) {
+                    if (memory_pulse == true) high_pulses++;
                 }
 
-                if (highPulses == module.memory.size()) pulseToSend = false;
-                else pulseToSend = true;
+                if (high_pulses == module.memory.size()) pulse_to_send = false;
+                else pulse_to_send = true;
             }
 
             for (const string& destination : module.destinations) {
-                pulseQueue.push_back(Pulse(module.name, destination, pulseToSend));
-                // cout << pulse.receiver << " -" << (pulseToSend ? "high" : "low") << " -> " << destination << endl;
+                pulse_queue.push_back(Pulse(module.name, destination, pulse_to_send));
+                // std::cout << pulse.receiver << " -" << (pulse_to_send ? "high" : "low") << " -> " << destination << std::endl;
             }
 
-            pulseQueue.erase(pulseQueue.begin(), pulseQueue.begin() + 1);
+            pulse_queue.erase(pulse_queue.begin(), pulse_queue.begin() + 1);
         }
     }
 
 }
 
-void day20::solve(string input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
+void day20::solve(const string &input) {
+    if (std::ifstream file(input); file.is_open()) {
         map<string, Module> modules;
-        vector<string> cunjunctionModules;
+        vector<string> conjunction_modules;
 
         string line;
         while (getline(file, line)) {
@@ -163,7 +187,7 @@ void day20::solve(string input) {
                 line.erase(0, 12);
             } else {
                 if (line[0] == '%') {
-                    module.type = FLIPFLOP;
+                    module.type = ModuleType::FLIPFLOP;
                     module.isOn = false;
                 } else if (line[0] == '&') module.type = CONJUNCTION;
 
@@ -175,7 +199,7 @@ void day20::solve(string input) {
                     module.name += line[i];
                 }
 
-                if (module.type == CONJUNCTION) cunjunctionModules.push_back(module.name);
+                if (module.type == CONJUNCTION) conjunction_modules.push_back(module.name);
             }
 
             line.erase(0, 3);
@@ -194,10 +218,10 @@ void day20::solve(string input) {
             }
             module.destinations = destinations;
 
-            modules.insert(std::pair(module.name, module));
+            modules.insert(pair(module.name, module));
         }
-        for (string c : cunjunctionModules) {
-            for (std::pair<string, Module> pair : modules) {
+        for (string c : conjunction_modules) {
+            for (pair<string, Module> pair : modules) {
                 const Module& mod = pair.second;
                 for (string dest : mod.destinations) {
                     if (dest == c) modules[c].memory[mod.name] = false;
@@ -205,13 +229,13 @@ void day20::solve(string input) {
             }
         }
 
-        map<string, Module> modulesP1 = modules;
+        map<string, Module> modules_p1 = modules;
 
-        int resultP1 = pushButton(modulesP1, 1000);
-        long resultP2 = lowestToRX(modules);
+        int result_p1 = push_button(modules_p1, 1000);
+        long result_p2 = lowest_to_rx(modules);
 
-        cout << "Solution problem 1: " << resultP1 << endl;
-        cout << "Solution problem 2: " << resultP2 << endl;
+        std::cout << "Solution problem 1: " << result_p1 << std::endl;
+        std::cout << "Solution problem 2: " << result_p2 << std::endl;
 
         file.close();
     } else printf("Can't open file");

@@ -1,11 +1,24 @@
 #include "../includes.h"
 #include "day19.h"
 
-using day19::Condition;
-using day19::Function;
-using day19::Input;
+struct Condition {
+    int variable;
+    char operation;
+    int compare_to;
+    string match;
+};
 
-long day19::sumCountAccepted(map<string, Function>& functions, std::unordered_map<char, std::pair<int, int>>& ranges, const std::string& name) {
+struct Function {
+    string name;
+    vector<Condition> conditions;
+    string exit_case;
+};
+
+struct Input {
+    int x, m, a, s;
+};
+
+static long sum_count_accepted(map<string, Function>& functions, std::unordered_map<char, pair<int, int>>& ranges, const string& name) {
     if (name == "R") return 0;
     if (name == "A") {
         long produkt = 1;
@@ -14,10 +27,10 @@ long day19::sumCountAccepted(map<string, Function>& functions, std::unordered_ma
     }
 
     const vector<Condition>& conditions = functions[name].conditions;
-    const string exitCase = functions[name].exitCase;
+    const string exit_case = functions[name].exit_case;
 
     long total = 0;
-    bool didBreak = false;
+    bool did_break = false;
     for (const Condition& condition : conditions) {
         char key;
         if (condition.variable == 0) key = 'x';
@@ -28,38 +41,38 @@ long day19::sumCountAccepted(map<string, Function>& functions, std::unordered_ma
         int low = ranges[key].first;
         int high = ranges[key].second;
 
-        std::pair<int, int> T;
-        std::pair<int, int> F;
+        pair<int, int> T;
+        pair<int, int> F;
 
         if (condition.operation == '<') {
-            T = std::pair(low, condition.compareTo - 1);
-            F = std::pair(condition.compareTo, high);
+            T = pair(low, condition.compare_to - 1);
+            F = pair(condition.compare_to, high);
         } else {
-            T = std::pair(condition.compareTo + 1, high);
-            F = std::pair(low, condition.compareTo);
+            T = pair(condition.compare_to + 1, high);
+            F = pair(low, condition.compare_to);
         }
 
         if (T.first <= T.second) {
-            auto newRanges2 = std::unordered_map{ranges};
-            newRanges2[key] = T;
-            total += sumCountAccepted(functions, newRanges2, condition.match);
+            auto new_ranges_2 = std::unordered_map{ranges};
+            new_ranges_2[key] = T;
+            total += sum_count_accepted(functions, new_ranges_2, condition.match);
         }
 
         if (F.first <= F.second) {
             ranges[key] = F;
         } else {
-            didBreak = true;
+            did_break = true;
             break;
         }
     }
 
-    if (!didBreak) total += sumCountAccepted(functions, ranges, exitCase);
+    if (!did_break) total += sum_count_accepted(functions, ranges, exit_case);
 
     return total;
 }
 
 
-string day19::testInput(const Input& input, const Function& function) {
+static string test_input(const Input& input, const Function& function) {
     for (const Condition& condition : function.conditions) {
         int value = 0;
         if (condition.variable == 0) value = input.x;
@@ -68,16 +81,16 @@ string day19::testInput(const Input& input, const Function& function) {
         else if (condition.variable == 3) value = input.s;
 
         if (condition.operation == '>') {
-            if (value > condition.compareTo) return condition.match;
+            if (value > condition.compare_to) return condition.match;
         } else {
-            if (value < condition.compareTo) return condition.match;
+            if (value < condition.compare_to) return condition.match;
         }
     }
 
-    return function.exitCase;
+    return function.exit_case;
 }
 
-Function day19::parseFunction(string& line) {
+static Function parse_function(string& line) {
     Function function;
 
     const int seperator = line.find('{');
@@ -87,42 +100,42 @@ Function day19::parseFunction(string& line) {
     line.erase(line.size() - 1, 1);
     for (int i = line.size() - 1; i >= 0; i--) {
         if (line[i] == ',') break;
-        function.exitCase += line[i];
+        function.exit_case += line[i];
     }
-    std::reverse(function.exitCase.begin(), function.exitCase.end());
-    line.erase(line.size() - function.exitCase.size() - 1, function.exitCase.size() + 1);
+    std::reverse(function.exit_case.begin(), function.exit_case.end());
+    line.erase(line.size() - function.exit_case.size() - 1, function.exit_case.size() + 1);
 
     vector<Condition> conditions;
     while (!line.empty()) {
-        string conditionString;
+        string condition_string;
         for (int i = 0; i < line.size(); i++) {
             if (line[i] == ',') break;
-            conditionString += line[i];
+            condition_string += line[i];
         }
 
         Condition condition;
-        if (conditionString[0] == 'x') condition.variable = 0;
-        else if (conditionString[0] == 'm') condition.variable = 1;
-        else if (conditionString[0] == 'a') condition.variable = 2;
-        else if (conditionString[0] == 's') condition.variable = 3;
+        if (condition_string[0] == 'x') condition.variable = 0;
+        else if (condition_string[0] == 'm') condition.variable = 1;
+        else if (condition_string[0] == 'a') condition.variable = 2;
+        else if (condition_string[0] == 's') condition.variable = 3;
 
-        condition.operation = conditionString[1];
+        condition.operation = condition_string[1];
 
-        string compareString;
-        for (int j = 2; j < conditionString.size(); j++) {
-            if (conditionString[j] == ':') break;
-            compareString += conditionString[j];
+        string compare_string;
+        for (int j = 2; j < condition_string.size(); j++) {
+            if (condition_string[j] == ':') break;
+            compare_string += condition_string[j];
         }
-        condition.compareTo = std::stoi(compareString);
+        condition.compare_to = std::stoi(compare_string);
 
-        for (int j = conditionString.size() - 1; j >= 0; j--) {
-            if (conditionString[j] == ':') break;
-            condition.match += conditionString[j];
+        for (int j = condition_string.size() - 1; j >= 0; j--) {
+            if (condition_string[j] == ':') break;
+            condition.match += condition_string[j];
         }
         std::reverse(condition.match.begin(), condition.match.end());
 
         conditions.push_back(condition);
-        line.erase(0, conditionString.size() + 1);
+        line.erase(0, condition_string.size() + 1);
     }
 
     function.conditions = conditions;
@@ -130,39 +143,38 @@ Function day19::parseFunction(string& line) {
     return function;
 }
 
-Input day19::parseInput(string& line) {
+static Input parse_input(string& line) {
     line.erase(0, 1);
     line.erase(line.size() - 1, 1);
 
     Input input;
 
     while (!line.empty()) {
-        string variableString;
+        string variable_string;
         for (int i = 0; i < line.size(); i++) {
             if (line[i] == ',') break;
-            variableString += line[i];
+            variable_string += line[i];
         }
 
         string number;
-        for (int i = 2; i < variableString.size(); i++) number += variableString[i];
+        for (int i = 2; i < variable_string.size(); i++) number += variable_string[i];
 
-        if (variableString[0] == 'x') input.x = std::stoi(number);
-        else if (variableString[0] == 'm') input.m = std::stoi(number);
-        else if (variableString[0] == 'a') input.a = std::stoi(number);
-        else if (variableString[0] == 's') input.s = std::stoi(number);
+        if (variable_string[0] == 'x') input.x = std::stoi(number);
+        else if (variable_string[0] == 'm') input.m = std::stoi(number);
+        else if (variable_string[0] == 'a') input.a = std::stoi(number);
+        else if (variable_string[0] == 's') input.s = std::stoi(number);
 
-        line.erase(0, variableString.size() + 1);
+        line.erase(0, variable_string.size() + 1);
     }
 
     return input;
 }
 
 void day19::solve(const string& input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
-        int resultP1 = 0;
+    if (std::ifstream file(input); file.is_open()) {
+        int result_p1 = 0;
 
-        bool finishedParsingFunctions = false;
+        bool finished_parsing_functions = false;
 
         map<string, Function> functions;
         vector<Input> inputs;
@@ -170,39 +182,38 @@ void day19::solve(const string& input) {
         string line;
         while (getline(file, line)) {
             if (line.empty()) {
-                finishedParsingFunctions = true;
+                finished_parsing_functions = true;
                 continue;
             }
 
-            if (!finishedParsingFunctions) {
-                Function function = parseFunction(line);
-                functions.insert(std::pair(function.name, function));
-            } else inputs.push_back(parseInput(line));
+            if (!finished_parsing_functions) {
+                Function function = parse_function(line);
+                functions.insert(pair(function.name, function));
+            } else inputs.push_back(parse_input(line));
         }
 
         for (int i = 0; i < inputs.size(); i++) {
             const Input input = inputs[i];
 
-            string result = testInput(input, functions["in"]);
+            string result = test_input(input, functions["in"]);
             while (true) {
-                result = testInput(input, functions[result]);
+                result = test_input(input, functions[result]);
                 if (result == "A" || result == "R") break;
             }
 
-            if (result == "A") resultP1 += input.x + input.m + input.a + input.s;
+            if (result == "A") result_p1 += input.x + input.m + input.a + input.s;
         }
 
-        std::unordered_map<char, std::pair<int, int>> ranges;
-        ranges['x'] = std::pair(1, 4000);
-        ranges['m'] = std::pair(1, 4000);
-        ranges['a'] = std::pair(1, 4000);
-        ranges['s'] = std::pair(1, 4000);
-        long long resultP2 = sumCountAccepted(functions, ranges, "in");
+        std::unordered_map<char, pair<int, int>> ranges;
+        ranges['x'] = pair(1, 4000);
+        ranges['m'] = pair(1, 4000);
+        ranges['a'] = pair(1, 4000);
+        ranges['s'] = pair(1, 4000);
+        long long result_p2 = sum_count_accepted(functions, ranges, "in");
 
-        printf("Solution problem 1: %d\n", resultP1);
-
-        cout << "Solution problem 2: " << resultP2 << endl;
+        std::cout << "Solution problem 2: " << result_p1 << std::endl;
+        std::cout << "Solution problem 2: " << result_p2 << std::endl;
 
         file.close();
-    } else cout << "Can't open file" << endl;
+    } else std::cout << "Can't open file" << std::endl;
 }

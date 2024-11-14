@@ -10,14 +10,13 @@ map<char, vector<int>> pipes = {
     {'-', {}},
 };
 
-void day10::solve(std::string input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
+void day10::solve(const string &input) {
+    if (std::ifstream file(input); file.is_open()) {
         vector<string> lines;
 
         // read input file
-        string currentLine;
-        while (getline(file, currentLine)) lines.push_back(currentLine);
+        string current_line;
+        while (getline(file, current_line)) lines.push_back(current_line);
 
         // locate start
         vector<int> start;
@@ -31,15 +30,15 @@ void day10::solve(std::string input) {
         }
 
         // walk loop and count steps
-        vector<int> currentPosition = start;
-        vector<int> lastPosition = start;
+        vector<int> current_position = start;
+        vector<int> last_position = start;
 
         // find first direction
         bool found = false;
         if (start[1] - 1 >= 0 && pipes.contains(lines[start[1] - 1][start[0]])) { // top
             char pipe = lines[start[1] - 1][start[0]];
             if (pipe == '7' || pipe == 'F' || pipe == '|') {
-                currentPosition[1]--;
+                current_position[1]--;
                 found = true;
             }
         }
@@ -47,7 +46,7 @@ void day10::solve(std::string input) {
         if (!found && start[1] + 1 < lines.size() && pipes.contains(lines[start[1] + 1][start[0]])) { // bottom
             char pipe = lines[start[1] + 1][start[0]];
             if (pipe == 'J' || pipe == 'L' || pipe == '|') {
-                currentPosition[1]++;
+                current_position[1]++;
                 found = true;
             }
         }
@@ -55,41 +54,41 @@ void day10::solve(std::string input) {
         if (!found && start[0] - 1 >= 0 && pipes.contains(lines[start[1]][start[0] - 1])) { // left
             char pipe = lines[start[1]][start[0] - 1];
             if (pipe == 'F' || pipe == 'L' || pipe == '-') {
-                currentPosition[0]--;
+                current_position[0]--;
                 found = true;
             }
         }
 
         if (!found && start[0] + 1 < lines[start[1]].size() && pipes.contains(lines[start[1]][start[0] + 1])) { // right
             char pipe = lines[start[1]][start[0] + 1];
-            if (pipe == 'J' || pipe == '7' || pipe == '-') currentPosition[0]++;
+            if (pipe == 'J' || pipe == '7' || pipe == '-') current_position[0]++;
         }
 
         // problem 1
         int steps;
-        while (currentPosition != start) {
+        while (current_position != start) {
             steps++;
-            char currentPipe = lines[currentPosition[1]][currentPosition[0]];
-            if (pipes.contains(currentPipe)) {
-                auto oldPosition = currentPosition;
-                if (currentPipe == '|') { // vertical movement
-                    if (lastPosition[1] < currentPosition[1]) currentPosition[1]++;
-                    else currentPosition[1]--;
-                } else if (currentPipe == '-') { // horizontal movement
-                    if (lastPosition[0] < currentPosition[0]) currentPosition[0]++;
-                    else currentPosition[0]--;
+            char current_pipe = lines[current_position[1]][current_position[0]];
+            if (pipes.contains(current_pipe)) {
+                auto old_position = current_position;
+                if (current_pipe == '|') { // vertical movement
+                    if (last_position[1] < current_position[1]) current_position[1]++;
+                    else current_position[1]--;
+                } else if (current_pipe == '-') { // horizontal movement
+                    if (last_position[0] < current_position[0]) current_position[0]++;
+                    else current_position[0]--;
                 } else { // corner movement
-                    if (lastPosition[0] != currentPosition[0]) currentPosition[1] += pipes[currentPipe][1];
-                    else currentPosition[0] += pipes[currentPipe][0];
+                    if (last_position[0] != current_position[0]) current_position[1] += pipes[current_pipe][1];
+                    else current_position[0] += pipes[current_pipe][0];
                 }
-                lastPosition = oldPosition;
+                last_position = old_position;
             }
         }
 
         // problem 2
         // no idea how to approach this problem, so I am waiting for other solutions to be available for inspiration
 
-        cout << "Solution problem 1: " << (steps + 1) / 2 << endl;
+        std::cout << "Solution problem 1: " << (steps + 1) / 2 << std::endl;
 
-    } else cout << "Can't open file" << endl;
+    } else std::cout << "Can't open file" << std::endl;
 }

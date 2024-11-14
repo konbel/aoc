@@ -1,7 +1,22 @@
 #include "../includes.h"
 #include "day23.h"
 
-int day23::getLongestPath(const vector<string>& grid) {
+static int dfs(map<vector<int>, map<vector<int>, int>>& graph, const vector<int>& p, std::set<vector<int>>& seen, const vector<int>& end) {
+    if (p == end) return 0;
+
+    int max = std::numeric_limits<int>::min();
+
+    seen.insert(p);
+    for (const auto& [nx, _] : graph[p]) {
+        if (seen.contains(nx)) continue;
+        max = std::max(max, dfs(graph, nx, seen, end) + graph[p][nx]);
+    }
+    seen.erase(p);
+
+    return max;
+}
+
+static int get_longest_path(const vector<string>& grid) {
     const vector start = {static_cast<int>(grid[0].find('.')), 0};
     const vector end = {static_cast<int>(grid[static_cast<int>(grid.size() - 1)].find('.')), static_cast<int>(grid.size() - 1)};
 
@@ -27,10 +42,10 @@ int day23::getLongestPath(const vector<string>& grid) {
     for (vector<int> p : points) graph[p] = {};
 
     map<char, vector<vector<int>>> dirs;
-    dirs.insert(std::pair<char, vector<vector<int>>>('>', {{1, 0}}));
-    dirs.insert(std::pair<char, vector<vector<int>>>('v', {{0, 1}}));
-    dirs.insert(std::pair<char, vector<vector<int>>>('<', {{-1, 0}}));
-    dirs.insert(std::pair<char, vector<vector<int>>>('.', {{0, -1}, {1, 0}, {0, 1}, {-1, 0}}));
+    dirs.insert(pair<char, vector<vector<int>>>('>', {{1, 0}}));
+    dirs.insert(pair<char, vector<vector<int>>>('v', {{0, 1}}));
+    dirs.insert(pair<char, vector<vector<int>>>('<', {{-1, 0}}));
+    dirs.insert(pair<char, vector<vector<int>>>('.', {{0, -1}, {1, 0}, {0, 1}, {-1, 0}}));
 
     for (vector<int> p : points) {
         vector<vector<int>> stack = {{0, p[0], p[1]}};
@@ -64,41 +79,25 @@ int day23::getLongestPath(const vector<string>& grid) {
     return dfs(graph, start, seen, end);
 }
 
-int day23::dfs(map<vector<int>, map<vector<int>, int>>& graph, const vector<int>& p, std::set<vector<int>>& seen, const vector<int>& end) {
-    if (p == end) return 0;
-
-    int max = std::numeric_limits<int>::min();
-
-    seen.insert(p);
-    for (const auto& [nx, _] : graph[p]) {
-        if (seen.contains(nx)) continue;
-        max = std::max(max, dfs(graph, nx, seen, end) + graph[p][nx]);
-    }
-    seen.erase(p);
-
-    return max;
-}
-
 void day23::solve(const string& input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
+    if (std::ifstream file(input); file.is_open()) {
         vector<string> grid;
         string line;
         while (getline(file, line)) grid.push_back(line);
 
-        const int resultP1 = getLongestPath(grid);
+        const int result_p1 = get_longest_path(grid);
 
-        vector<string> gridNoSlopes = grid;
-        for (string& l : gridNoSlopes) {
+        vector<string> grid_no_slopes = grid;
+        for (string& l : grid_no_slopes) {
             for (char& c : l) {
                 if (c != '#' && c != '.') c = '.';
             }
         }
-        const int resultP2 = getLongestPath(gridNoSlopes);
+        const int result_p2 = get_longest_path(grid_no_slopes);
 
-        cout << "Solution problem 1: " << resultP1 << endl;
-        cout << "Solution problem 2: " << resultP2 << endl;
+        std::cout << "Solution problem 1: " << result_p1 << std::endl;
+        std::cout << "Solution problem 2: " << result_p2 << std::endl;
 
         file.close();
-    } else cout << "Can't open file" << endl;
+    } else std::cout << "Can't open file" << std::endl;
 }

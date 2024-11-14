@@ -1,91 +1,81 @@
 #include "../includes.h"
 #include "day2.h"
 
-std::pair<std::string, int> parseValue(std::string currentValueString) {
-    const size_t i = currentValueString.find(" ");
-    std::string digits = currentValueString.substr(0, i);
-    return std::pair<std::string, int>(currentValueString.substr(i + 1, currentValueString.length()), std::stoi(currentValueString.substr(0, i)));
+static pair<string, int> parse_value(string current_value_string) {
+    const size_t i = current_value_string.find(" ");
+    string digits = current_value_string.substr(0, i);
+    return pair<string, int>(current_value_string.substr(i + 1, current_value_string.length()), std::stoi(current_value_string.substr(0, i)));
 }
 
-std::map<std::string, int> parseSet(std::string currentSetString) {
-    std::map<std::string, int> currentSet;
+static map<string, int> parse_set(string current_set_string) {
+    map<string, int> current_set;
 
-    size_t i = currentSetString.find(",");
-    while (i != std::string::npos) {
-        const std::string currentValueString = currentSetString.substr(0, i);
-        currentSet.insert(parseValue(currentValueString));
-        currentSetString.erase(0, i + 2);
-        i = currentSetString.find(",");
+    size_t i = current_set_string.find(",");
+    while (i != string::npos) {
+        const string current_value_string = current_set_string.substr(0, i);
+        current_set.insert(parse_value(current_value_string));
+        current_set_string.erase(0, i + 2);
+        i = current_set_string.find(",");
     }
 
-    return currentSet;
+    return current_set;
 }
 
-std::vector<std::map<std::string, int>> parseLine(std::string currentLine) {
-    std::vector<std::map<std::string, int>> currentSets;
+static vector<map<string, int>> parse_line(string current_line) {
+    vector<map<string, int>> current_sets;
 
-    size_t i = currentLine.find(";");
-    while (i != std::string::npos) {
-        std::string currentSetString = currentLine.substr(0, i);
-        currentSets.push_back(parseSet(currentSetString + ","));
-        currentLine.erase(0, i + 2);
-        i = currentLine.find(";");
+    size_t i = current_line.find(";");
+    while (i != string::npos) {
+        string current_set_string = current_line.substr(0, i);
+        current_sets.push_back(parse_set(current_set_string + ","));
+        current_line.erase(0, i + 2);
+        i = current_line.find(";");
     }
 
-    return currentSets;
+    return current_sets;
 }
 
-void logParsedLine(std::vector<std::map<std::string, int>> parsedLine) {
-    for (int i = 0; i < parsedLine.size(); i++) {
-        std::cout << "Set " << i + 1 << ": ";
-        for (auto pair : parsedLine[i]) std::cout << pair.first << " " << pair.second << ", ";
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
-}
+void day2::solve(const string &input) {
+    constexpr int RED_CUBES = 12;
+    constexpr int GREEN_CUBES = 13;
+    constexpr int BLUE_CUBES = 14;
+    const string COLORS[] = { "red", "green", "blue" };
 
-void day2::solve(std::string input) {
-    const int RED_CUBES = 12;
-    const int GREEN_CUBES = 13;
-    const int BLUE_CUBES = 14;
-    const std::string COLORS[] = { "red", "green", "blue" };
+    if (std::ifstream file(input); file.is_open()) {
+        int result_p1 = 0;
+        int result_p2 = 0;
 
-    std::ifstream file(input);
-    if (file.is_open()) {
-        int resultP1 = 0;
-        int resultP2 = 0;
+        int line_count = 1;
+        string current_line;
+        while (std::getline(file, current_line)) {
+            current_line.erase(0, current_line.find(":") + 2);
 
-        int lineCount = 1;
-        std::string currentLine;
-        while (std::getline(file, currentLine)) {
-            currentLine.erase(0, currentLine.find(":") + 2);
+            auto parsed_line = parse_line(current_line + ";");
 
-            auto parsedLine = parseLine(currentLine + ";");
+            bool is_line_possible = true;
 
-            bool isLinePossible = true;
-
-            int maxRed = std::numeric_limits<int>::min();
-            int maxGreen = std::numeric_limits<int>::min();
-            int maxBlue = std::numeric_limits<int>::min();
-            for (int i = 0; i < parsedLine.size(); i++) {
+            int max_red = std::numeric_limits<int>::min();
+            int max_green = std::numeric_limits<int>::min();
+            int max_blue = std::numeric_limits<int>::min();
+            for (int i = 0; i < parsed_line.size(); i++) {
                 // check if number is smaller than the given number
-                if (parsedLine[i]["red"] > RED_CUBES) isLinePossible = false;
-                if (parsedLine[i]["green"] > GREEN_CUBES) isLinePossible = false;
-                if (parsedLine[i]["blue"] > BLUE_CUBES) isLinePossible = false;
+                if (parsed_line[i]["red"] > RED_CUBES) is_line_possible = false;
+                if (parsed_line[i]["green"] > GREEN_CUBES) is_line_possible = false;
+                if (parsed_line[i]["blue"] > BLUE_CUBES) is_line_possible = false;
 
                 // get the minimum number of each color
-                if (parsedLine[i]["red"] != 0 && parsedLine[i]["red"] > maxRed) maxRed = parsedLine[i]["red"];
-                if (parsedLine[i]["green"] != 0 && parsedLine[i]["green"] > maxGreen) maxGreen = parsedLine[i]["green"];
-                if (parsedLine[i]["blue"] != 0 && parsedLine[i]["blue"] > maxBlue) maxBlue = parsedLine[i]["blue"];
+                if (parsed_line[i]["red"] != 0 && parsed_line[i]["red"] > max_red) max_red = parsed_line[i]["red"];
+                if (parsed_line[i]["green"] != 0 && parsed_line[i]["green"] > max_green) max_green = parsed_line[i]["green"];
+                if (parsed_line[i]["blue"] != 0 && parsed_line[i]["blue"] > max_blue) max_blue = parsed_line[i]["blue"];
             }
-            if (isLinePossible) resultP1 += lineCount;
-            int power = maxRed * maxGreen * maxBlue;
-            resultP2 += power;
+            if (is_line_possible) result_p1 += line_count;
+            int power = max_red * max_green * max_blue;
+            result_p2 += power;
 
-            lineCount++;
+            line_count++;
         }
 
-        std::cout << "Solution problem 1: " << resultP1 << std::endl;
-        std::cout << "Solution problem 2: " << resultP2 << std::endl;
+        std::cout << "Solution problem 1: " << result_p1 << std::endl;
+        std::cout << "Solution problem 2: " << result_p2 << std::endl;
     } else std::cout << "Can't open file" << std::endl;
 }

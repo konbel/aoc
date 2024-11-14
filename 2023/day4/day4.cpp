@@ -1,94 +1,93 @@
 #include "../includes.h"
 #include "day4.h"
 
-void day4::solve(std::string input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
-        int resultP1, resultP2;
-        std::vector<int> matches;
+void day4::solve(const string &input) {
+    if (std::ifstream file(input); file.is_open()) {
+        int result_p1, result_p2;
+        vector<int> matches;
 
         // read file line by line
-        std::string currentLine;
+        string current_line;
         int lines;
-        while (getline(file, currentLine)) {
+        while (getline(file, current_line)) {
             lines++;
 
             // remove prefix
-            currentLine.erase(0, currentLine.find(":") + 2);
+            current_line.erase(0, current_line.find(":") + 2);
 
             // split string by seperator
-            int seperator = currentLine.find("|");
-            std::string winningNumbersString = currentLine.substr(0, seperator);
-            currentLine.erase(0, seperator + 2);
+            int seperator = current_line.find("|");
+            string winning_numbers_string = current_line.substr(0, seperator);
+            current_line.erase(0, seperator + 2);
 
             // remove leading space
-            if (currentLine[0] == ' ') currentLine.erase(0, 1);
-            if (winningNumbersString[0] == ' ') winningNumbersString.erase(0, 1);
+            if (current_line[0] == ' ') current_line.erase(0, 1);
+            if (winning_numbers_string[0] == ' ') winning_numbers_string.erase(0, 1);
 
             // add trailing space
-            currentLine += " ";
-            winningNumbersString += " ";
+            current_line += " ";
+            winning_numbers_string += " ";
 
             // parse winning numbers
-            std::vector<int> winningNumbers;
-            std::string n;
-            for (int i = 0; i < currentLine.size(); i++) {
-                if (isdigit(winningNumbersString[i])) n += winningNumbersString[i];
+            vector<int> winning_numbers;
+            string n;
+            for (int i = 0; i < current_line.size(); i++) {
+                if (isdigit(winning_numbers_string[i])) n += winning_numbers_string[i];
                 else {
                     if (!n.empty()) {
-                        winningNumbers.push_back(std::stoi(n));
-                        n = std::string();
+                        winning_numbers.push_back(std::stoi(n));
+                        n = string();
                     }
                 }
             }
 
             // parse current numbers
-            std::vector<int> currentNumbers;
-            for (int i = 0; i < currentLine.size(); i++) {
-                if (isdigit(currentLine[i])) n += currentLine[i];
+            vector<int> current_numbers;
+            for (int i = 0; i < current_line.size(); i++) {
+                if (isdigit(current_line[i])) n += current_line[i];
                 else {
                     if (!n.empty()) {
-                        currentNumbers.push_back(std::stoi(n));
-                        n = std::string();
+                        current_numbers.push_back(std::stoi(n));
+                        n = string();
                     }
                 }
             }
 
             // compare current and winning numbers
-            int currentResult = 0;
-            int currentMatches = 0;
-            for (int c : currentNumbers) {
-                for (int w : winningNumbers) {
+            int current_result = 0;
+            int current_matches = 0;
+            for (int c : current_numbers) {
+                for (int w : winning_numbers) {
                     if (c == w) {
-                        currentMatches++;
-                        if (currentResult == 0) currentResult = 1;
-                        else currentResult *= 2;
+                        current_matches++;
+                        if (current_result == 0) current_result = 1;
+                        else current_result *= 2;
                     }
                 }
             }
 
-            matches.push_back(currentMatches);
+            matches.push_back(current_matches);
 
-            resultP1 += currentResult;
+            result_p1 += current_result;
         }
 
         // calculate number of copies
-        std::vector<int> repeatLineCount(lines);
-        for (int& i : repeatLineCount) i = 1;
+        vector<int> repeat_line_count(lines);
+        for (int& i : repeat_line_count) i = 1;
 
-        for (int i = 0; i < repeatLineCount.size(); i++) {
-            for (int j = 0; j < repeatLineCount[i]; j++) {
+        for (int i = 0; i < repeat_line_count.size(); i++) {
+            for (int j = 0; j < repeat_line_count[i]; j++) {
                 for (int k = 1; k <= matches[i]; k++) {
-                    repeatLineCount[i + k]++;
+                    repeat_line_count[i + k]++;
                 }
             }
         }
 
         // sum number of copies
-        for (int i : repeatLineCount) resultP2 += i;
+        for (int i : repeat_line_count) result_p2 += i;
 
-        std::cout << "Solution problem 1: " << resultP1 << std::endl;
-        std::cout << "Solution problem 2: " << resultP2 <<  std::endl;
+        std::cout << "Solution problem 1: " << result_p1 << std::endl;
+        std::cout << "Solution problem 2: " << result_p2 <<  std::endl;
 
         file.close();
     } else std::cout << "Can't open file" << std::endl;

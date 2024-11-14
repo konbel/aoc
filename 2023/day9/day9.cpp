@@ -1,12 +1,12 @@
 #include "../includes.h"
 #include "day9.h"
 
-std::vector<int> day9::parseLine(std::string line) {
+static vector<int> parse_line(string line) {
     line += " ";
 
-    std::vector<int> vec;
+    vector<int> vec;
 
-    std::string num;
+    string num;
     for (char c : line) {
         if (isdigit(c) || c == '-') num += c;
         else {
@@ -18,53 +18,52 @@ std::vector<int> day9::parseLine(std::string line) {
     return vec;
 }
 
-void day9::solve(std::string input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
-        std::vector<std::vector<int>> histories;
+void day9::solve(const string &input) {
+    if (std::ifstream file(input); file.is_open()) {
+        vector<vector<int>> histories;
 
-        std::string currentLine;
-        while (getline(file, currentLine)) histories.push_back(parseLine(currentLine));
+        string current_line;
+        while (getline(file, current_line)) histories.push_back(parse_line(current_line));
 
-        int resultP1 = 0;
-        int resultP2 = 0;
+        int result_p1 = 0;
+        int result_p2 = 0;
 
         for (auto history : histories) {
-            std::vector<std::vector<int>> differences;
+            vector<vector<int>> differences;
             differences.push_back(history);
 
             while (true) {
-                int lastIndex = differences.size() - 1;
+                int last_index = differences.size() - 1;
 
                 // calc differences
-                std::vector<int> newDifferences;
-                for (int j = 0; j < differences[lastIndex].size() - 1; j++) newDifferences.push_back(differences[lastIndex][j + 1] - differences[lastIndex][j]);
-                differences.push_back(newDifferences);
-                lastIndex++;
+                vector<int> new_differences;
+                for (int j = 0; j < differences[last_index].size() - 1; j++) new_differences.push_back(differences[last_index][j + 1] - differences[last_index][j]);
+                differences.push_back(new_differences);
+                last_index++;
 
                 // check if all zero
                 int zeroes = 0;
-                for (int j : newDifferences) {
+                for (int j : new_differences) {
                     if (j == 0) zeroes++;
                 }
 
-                if (zeroes == newDifferences.size()) {
+                if (zeroes == new_differences.size()) {
                     // extrapolate right
-                    differences[lastIndex].push_back(0);
+                    differences[last_index].push_back(0);
                     for (int j = differences.size() - 2; j >= 0; j--) differences[j].push_back(differences[j][differences[j].size() - 1] + differences[j + 1][differences[j + 1].size() - 1]);
-                    resultP1 += differences[0][differences[0].size() - 1];
+                    result_p1 += differences[0][differences[0].size() - 1];
 
                     // extrapolate left
-                    differences[lastIndex].insert(differences[lastIndex].begin(), 0);
-                    for (int j = lastIndex - 1; j > 0; j--) differences[j - 1].insert(differences[j - 1].begin(), differences[j - 1][0] - differences[j][0]);
-                    resultP2 += differences[0][0];
+                    differences[last_index].insert(differences[last_index].begin(), 0);
+                    for (int j = last_index - 1; j > 0; j--) differences[j - 1].insert(differences[j - 1].begin(), differences[j - 1][0] - differences[j][0]);
+                    result_p2 += differences[0][0];
                     break;
                 }
             }
         }
 
-        std::cout << "Solution problem 1: " << resultP1 << std::endl;
-        std::cout << "Solution problem 2: " << resultP2 << std::endl;
+        std::cout << "Solution problem 1: " << result_p1 << std::endl;
+        std::cout << "Solution problem 2: " << result_p2 << std::endl;
 
         file.close();
     } else std::cout << "Can't open file" << std::endl;

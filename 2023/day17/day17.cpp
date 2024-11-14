@@ -1,7 +1,15 @@
 #include "../includes.h"
 #include "day17.h"
 
-int day17::findPathP1(const vector<string>& map) {
+struct State {
+    int hl, r, c, dr, dc, n;
+
+    bool operator>(const State& other) const {
+        return hl > other.hl;
+    }
+};
+
+static int find_path_p1(const vector<string>& map) {
     std::set<std::tuple<int, int, int, int, int>> seen;
     std::priority_queue<State, vector<State>, std::greater<State>> pq;
     pq.push({0, 0, 0, 0, 0, 0});
@@ -34,7 +42,7 @@ int day17::findPathP1(const vector<string>& map) {
     return 0;
 }
 
-int day17::findPathP2(const vector<string>& map) {
+static int find_path_p2(const vector<string>& map) {
     std::set<std::tuple<int, int, int, int, int>> seen;
     std::priority_queue<State, vector<State>, std::greater<State>> pq;
     pq.push({0, 0, 0, 0, 0, 0});
@@ -70,19 +78,18 @@ int day17::findPathP2(const vector<string>& map) {
 }
 
 void day17::solve(const string& input) {
-    std::ifstream file(input);
-    if (file.is_open()) {
+    if (std::ifstream file(input); file.is_open()) {
         vector<string> map;
 
         string line;
         while (getline(file, line)) map.push_back(line);
 
-        const int resultP1 = findPathP1(map);
-        const int resultP2 = findPathP2(map);
+        const int result_p1 = find_path_p1(map);
+        const int result_p2 = find_path_p2(map);
 
-        cout << "Solution problem 1: " << resultP1 << endl;
-        cout << "Solution problem 2: " << resultP2 << endl;
+        std::cout << "Solution problem 1: " << result_p1 << std::endl;
+        std::cout << "Solution problem 2: " << result_p2 << std::endl;
 
         file.close();
-    } else cout << "Can't open file" << endl;
+    } else std::cout << "Can't open file" << std::endl;
 }

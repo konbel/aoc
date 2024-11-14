@@ -2,8 +2,6 @@
 #define DAY18_H
 
 namespace day18 {
-    vector<vector<long>> calculateCorners(const vector<std::pair<char, int>>& steps);
-    long calculateSurfaceArea(const vector<std::pair<char, int>>& steps);
     void solve(const string& input);
 }
 
