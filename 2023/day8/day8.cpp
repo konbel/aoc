@@ -55,14 +55,14 @@ void day8::solve(const string &input) {
         // problem 1
         auto currentNode = nodes.find("AAA");
         int result_p1 = 0;
-        // while (currentNode->first != "ZZZ") {
-        //     for (int i = 0; i < instructions.size(); i++) {
-        //         result_p1++;
-        //         if (instructions[i] == 'R') currentNode = nodes.find(currentNode->second[1]);
-        //         else if (instructions[i] == 'L') currentNode = nodes.find(currentNode->second[0]);
-        //         if (currentNode->first == "ZZZ") break;
-        //     }
-        // }
+        while (currentNode->first != "ZZZ") {
+            for (int i = 0; i < instructions.size(); i++) {
+                result_p1++;
+                if (instructions[i] == 'R') currentNode = nodes.find(currentNode->second[1]);
+                else if (instructions[i] == 'L') currentNode = nodes.find(currentNode->second[0]);
+                if (currentNode->first == "ZZZ") break;
+            }
+        }
 
         // problem 2
         vector<pair<string, vector<string>>> current_nodes;
