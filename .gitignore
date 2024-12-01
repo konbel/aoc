@@ -18,3 +18,9 @@ main.cpp
 
 # Mac OS X Finder #
 .DS_Store
+
+# Rust #
+target
+Cargo.lock
+input
+test
