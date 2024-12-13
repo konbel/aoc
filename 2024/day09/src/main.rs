@@ -1,65 +1,152 @@
-fn get_blocks(input: &String) -> Vec<Option<usize>> {
-    let mut blocks = vec![];
+fn get_blocks(input: &[String]) -> Vec<isize> {
+    let mut iter = input[0].chars();
+    let mut vec = vec![];
 
-    let mut id = 0;
+    let mut i = 0;
+    loop {
+        let Some(n) = iter.next() else { break };
+        let n = n.to_digit(10).unwrap();
+        vec.append(&mut (0..n).map(|_| i).collect());
 
-    for (i, c) in input.chars().enumerate() {
-        let size: usize = c.to_string().parse().unwrap();
+        i += 1;
 
-        if i % 2 == 0 {
-            for _ in 0..size {
-                blocks.push(Some(id));
-            }
-
-            id += 1;
-        } else {
-            for _ in 0..size {
-                blocks.push(None);
-            }
-        }
+        let Some(n) = iter.next() else { break };
+        let n = n.to_digit(10).unwrap();
+        vec.append(&mut (0..n).map(|_| -1).collect());
     }
 
-    blocks
+    vec
 }
 
-fn calc_checksum(blocks: &[Option<usize>]) -> usize {
+fn calc_checksum(blocks: &[isize]) -> usize {
     blocks
         .iter()
-        .filter(|v| v.is_some())
         .enumerate()
-        .map(|(i, c)| i * c.unwrap())
+        .filter(|(_i, v)| **v >= 0)
+        .map(|(i, &c)| i * c as usize)
         .sum()
 }
 
 fn task_one(input: &[String]) -> usize {
-    let mut blocks = get_blocks(&input[0]);
+    let mut blocks = get_blocks(input);
 
-    'outer: for i in 0..blocks.len() {
-        let c = blocks[i];
+    let mut i = 0;
+    let mut j = blocks.len() - 1;
 
-        if c.is_none() {
-            for j in (0..blocks.len()).rev() {
-                let s = blocks[j];
-
-                if let Some(s) = s {
-                    blocks[i] = Some(s);
-                    blocks[j] = None;
-
-                    if blocks[(i + 1)..blocks.len()].iter().all(|v| v.is_none()) {
-                        break 'outer;
-                    }
-
-                    break;
-                }
+    loop {
+        while i < blocks.len() {
+            if blocks[i] == -1 {
+                break;
             }
+
+            i += 1;
         }
+
+        loop {
+            if blocks[j] != -1 {
+                break;
+            }
+
+            j -= 1;
+        }
+
+        if i >= j {
+            break;
+        }
+
+        let temp = blocks[i];
+        blocks[i] = blocks[j];
+        blocks[j] = temp;
     }
 
     calc_checksum(&blocks)
 }
 
-fn task_two(_input: &[String]) -> usize {
-    0
+fn find_sections(blocks: &[isize]) -> Vec<(usize, usize)> {
+    let mut sections = vec![];
+
+    let mut s = 0;
+    let mut e = 0;
+
+    loop {
+        while e < blocks.len() && blocks[s] == blocks[e] {
+            e += 1;
+        }
+
+        sections.push((s, e - 1));
+        s = e;
+
+        if e == blocks.len() {
+            break;
+        }
+
+        while blocks[s] == -1 {
+            s += 1;
+        }
+
+        e = s;
+    }
+
+    sections
+}
+
+fn find_empty_sections(blocks: &[isize]) -> Vec<(usize, usize)> {
+    let mut start = 0;
+    let mut empty = vec![];
+
+    loop {
+        let next = find_next_empty_section(start, &blocks);
+
+        if next.0 > next.1 {
+            break;
+        }
+
+        empty.push(next);
+        start = next.1;
+    }
+
+    empty
+}
+
+fn find_next_empty_section(start: usize, blocks: &[isize]) -> (usize, usize) {
+    let mut ns = start + 1;
+
+    while ns < blocks.len() && blocks[ns] != -1 {
+        ns += 1;
+    }
+
+    let mut ne = ns;
+    while ne < blocks.len() && blocks[ne] == -1 {
+        ne += 1;
+    }
+
+    (ns, ne - 1)
+}
+
+fn task_two(input: &[String]) -> usize {
+    let mut blocks = get_blocks(input);
+
+    let mut empty = find_empty_sections(&blocks);
+    let mut sections = find_sections(&blocks);
+
+    while let Some(file) = sections.pop() {
+        if let Some(index) = empty.iter().position(|e| (e.1 - e.0) >= (file.1 - file.0)) {
+            let spot = empty[index];
+            if spot.1 > file.0 {
+                continue;
+            }
+
+            let id = blocks[file.0];
+            for (fi, i) in (file.0..=file.1).zip(spot.0..=spot.1) {
+                blocks[i] = id;
+                blocks[fi] = -1;
+            }
+
+            empty = find_empty_sections(&blocks);
+        }
+    }
+
+    calc_checksum(&blocks)
 }
 
 fn main() {
