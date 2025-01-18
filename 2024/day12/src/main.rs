@@ -1,55 +1,77 @@
 use std::collections::{HashSet, VecDeque};
 
-fn flood(seen: &mut HashSet<(usize, usize)>, grid: &[Vec<char>], start: (usize, usize)) -> usize {
-    let dirs = vec![(1, 0), (-1, 0), (0, 1), (0, -1)];
-    let letter = grid[start.0][start.1];
+const DIRS: [(isize, isize); 4] = [(0, 1), (1, 0), (0, -1), (-1, 0)];
 
+fn neighbours(grid: &[Vec<char>], tile: (isize, isize)) -> impl Iterator<Item = (isize, isize)> {
+    let my = grid.len() as isize;
+    let mx = grid[0].len() as isize;
+    DIRS.iter()
+        .map(move |dir| (tile.0 + dir.0, tile.1 + dir.1))
+        .filter(move |&(y, x)| y >= 0 && y < my && x >= 0 && x < mx)
+}
+
+fn flood(grid: &[Vec<char>], start: (isize, isize)) -> (HashSet<(isize, isize)>, usize) {
     let mut queue = VecDeque::from([start]);
-    seen.insert(start);
+    let mut shape = HashSet::from([start]);
+
+    let plant = grid[start.0 as usize][start.1 as usize];
     let mut perimiter = 0;
-    let mut area = 0;
 
-    while !queue.is_empty() {
-        let tile = queue.pop_front().unwrap();
-        area += 1;
+    while let Some(tile) = queue.pop_front() {
+        let ns: Vec<_> = neighbours(&grid, tile)
+            .filter(|&(y, x)| grid[y as usize][x as usize] == plant)
+            .collect();
 
-        for d in dirs.iter() {
-            let y: isize = tile.0 as isize + d.0;
-            let x: isize = tile.1 as isize + d.1;
+        perimiter += 4 - ns.len();
 
-            if y < 0 || y >= grid.len() as isize || x < 0 || x >= grid[0].len() as isize {
-                perimiter += 1;
-                continue;
-            }
-
-            let y = y as usize;
-            let x = x as usize;
-
-            if grid[y][x] == letter {
-                let tile = (y, x);
-                if seen.insert(tile) {
-                    queue.push_back(tile);
-                }
-            } else {
-                perimiter += 1;
+        for n in ns {
+            if shape.insert(n) {
+                queue.push_back(n);
             }
         }
     }
 
-    area * perimiter
+    (shape, perimiter)
+}
+
+fn count_sides(shape: &HashSet<(isize, isize)>) -> usize {
+    let mut sum = 0;
+
+    for d in DIRS {
+        let sides: HashSet<(isize, isize)> = shape
+            .iter()
+            .map(|pos| (pos.0 + d.0, pos.1 + d.1))
+            .filter(|next| !shape.contains(next))
+            .collect();
+
+        let mut remove: HashSet<(isize, isize)> = HashSet::default();
+        for side in &sides {
+            let mut tmp = (side.0 + d.1, side.1 + d.0);
+            while sides.contains(&tmp) {
+                remove.insert(tmp);
+                tmp = (tmp.0 + d.1, tmp.1 + d.0);
+            }
+        }
+
+        sum += sides.len() - remove.len();
+    }
+
+    sum
 }
 
 fn task_one(input: &[String]) -> usize {
     let grid: Vec<Vec<char>> = input.iter().map(|line| line.chars().collect()).collect();
-
-    let mut seen: HashSet<(usize, usize)> = HashSet::default();
+    let mut seen: HashSet<(isize, isize)> = HashSet::default();
     let mut price = 0;
 
     for y in 0..grid.len() {
         for x in 0..grid[0].len() {
-            let tile = (y, x);
-            if !seen.contains(&tile) {
-                price += flood(&mut seen, &grid, tile);
+            let tile = (y as isize, x as isize);
+
+            if seen.insert(tile) {
+                let (shape, perimiter) = flood(&grid, tile);
+                price += shape.len() * perimiter;
+                seen.extend(shape);
             }
         }
     }
@@ -57,8 +79,25 @@ fn task_one(input: &[String]) -> usize {
     price
 }
 
-fn task_two(_input: &[String]) -> usize {
-    0
+fn task_two(input: &[String]) -> usize {
+    let grid: Vec<Vec<char>> = input.iter().map(|line| line.chars().collect()).collect();
+    let mut seen: HashSet<(isize, isize)> = HashSet::default();
+    let mut price = 0;
+
+    for y in 0..grid.len() {
+        for x in 0..grid[0].len() {
+            let tile = (y as isize, x as isize);
+
+            if seen.insert(tile) {
+                let (shape, _) = flood(&grid, tile);
+                let sides = count_sides(&shape);
+                price += shape.len() * sides;
+                seen.extend(shape);
+            }
+        }
+    }
+
+    price
 }
 
 fn main() {
