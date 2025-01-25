@@ -1,3 +1,5 @@
+use std::collections::{HashSet, VecDeque};
+
 fn parse(input: &[String]) -> (Vec<Vec<char>>, Vec<char>) {
     let i: usize = input.iter().position(|line| line.is_empty()).unwrap();
 
@@ -74,19 +76,122 @@ fn simulate(map: &mut [Vec<char>], moves: &[char], robot: (usize, usize)) {
     }
 }
 
-fn task_one(input: &[String]) -> usize {
-    let (mut map, moves) = parse(input);
-    let robot = find_robot(&map);
-    map[robot.0][robot.1] = '.';
+fn expand(map: &[Vec<char>]) -> Vec<Vec<char>> {
+    let mut new = vec![];
 
-    // simulate
-    simulate(&mut map, &moves, robot);
+    for r in map {
+        let mut row = vec![];
 
-    // sum
+        for &c in r {
+            if c == '#' {
+                row.push('#');
+                row.push('#');
+            } else if c == '.' {
+                row.push('.');
+                row.push('.');
+            } else if c == 'O' {
+                row.push('[');
+                row.push(']');
+            } else if c == '@' {
+                row.push('@');
+                row.push('.');
+            }
+        }
+
+        new.push(row);
+    }
+
+    new
+}
+
+fn simulate2(map: &mut [Vec<char>], moves: &[char], robot: (usize, usize)) {
+    let mut robot = robot;
+
+    for m in moves {
+        let dir = match m {
+            '^' => (-1, 0),
+            '>' => (0, 1),
+            'v' => (1, 0),
+            '<' => (0, -1),
+            _ => (0, 0),
+        };
+
+        let mut updates = vec![robot];
+        let mut queue = VecDeque::from([robot]);
+
+        if dir == (0, 1) || dir == (0, -1) {
+            while let Some(pos) = queue.pop_front() {
+                let y = (pos.0 as isize + dir.0) as usize;
+                let x = (pos.1 as isize + dir.1) as usize;
+
+                let tile = map[y][x];
+
+                if tile == '#' {
+                    updates.clear();
+                    break;
+                } else if tile == '[' || tile == ']' {
+                    updates.push((y, x));
+                    queue.push_back((y, x));
+                }
+            }
+        } else {
+            let mut seen = HashSet::from([robot]);
+
+            while let Some(pos) = queue.pop_front() {
+                let y = (pos.0 as isize + dir.0) as usize;
+                let x = (pos.1 as isize + dir.1) as usize;
+
+                let tile = map[y][x];
+
+                if tile == '#' {
+                    updates.clear();
+                    break;
+                } else if tile == '[' || tile == ']' {
+                    if seen.insert((y, x)) {
+                        updates.push((y, x));
+                        queue.push_back((y, x));
+
+                        let nx;
+
+                        if tile == '[' {
+                            nx = x + 1;
+                        } else {
+                            nx = x - 1;
+                        }
+
+                        if seen.insert((y, nx)) {
+                            updates.push((y, nx));
+                            queue.push_back((y, nx));
+                        }
+                    }
+                }
+            }
+        }
+
+        for u in updates.iter().skip(1).rev() {
+            let y = (u.0 as isize + dir.0) as usize;
+            let x = (u.1 as isize + dir.1) as usize;
+
+            let old = map[u.0][u.1];
+            map[y][x] = old;
+            map[u.0][u.1] = '.';
+        }
+
+        if updates.len() > 0 {
+            let y = (updates[0].0 as isize + dir.0) as usize;
+            let x = (updates[0].1 as isize + dir.1) as usize;
+            robot = (y, x);
+            map[y][x] = '.';
+        }
+    }
+}
+
+fn gps(map: &[Vec<char>], v: char) -> usize {
     let mut sum = 0;
+
     for (y, r) in map.iter().enumerate() {
         for (x, c) in r.iter().enumerate() {
-            if *c == 'O' {
+            if *c == v {
                 sum += y * 100 + x;
             }
         }
@@ -95,8 +200,25 @@ fn task_one(input: &[String]) -> usize {
     sum
 }
 
-fn task_two(_input: &[String]) -> usize {
-    0
+fn task_one(input: &[String]) -> usize {
+    let (mut map, moves) = parse(input);
+    let robot = find_robot(&map);
+    map[robot.0][robot.1] = '.';
+
+    simulate(&mut map, &moves, robot);
+
+    gps(&map, 'O')
+}
+
+fn task_two(input: &[String]) -> usize {
+    let (map, moves) = parse(input);
+    let mut map = expand(&map);
+    let robot = find_robot(&map);
+    map[robot.0][robot.1] = '.';
+
+    simulate2(&mut map, &moves, robot);
+
+    gps(&map, '[')
 }
 
 fn main() {
