@@ -1,4 +1,4 @@
-use std::collections::BinaryHeap;
+use std::collections::{ BinaryHeap, HashMap, HashSet };
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 struct Tile {
@@ -27,12 +27,12 @@ struct Info {
     cost: usize,
     prev: (usize, usize),
 }
+const DIRS: [(isize, isize); 4] = [(-1, 0), (0, 1), (1, 0), (0, -1)];
 
 fn get_neighbours(
     map: &[Vec<char>],
     (y, x): (usize, usize),
 ) -> Vec<((usize, usize), (isize, isize))> {
-    const DIRS: [(isize, isize); 4] = [(-1, 0), (0, 1), (1, 0), (0, -1)];
     let mut ns = vec![];
 
     for &(dy, dx) in &DIRS {
@@ -107,7 +107,7 @@ fn calculate_cost(map: &[Vec<char>], start: (usize, usize)) -> Vec<Vec<Vec<Info>
         }
     }
 
-    return visited;
+    visited
 }
 
 fn task_one(input: &[String]) -> usize {
@@ -123,8 +123,102 @@ fn task_one(input: &[String]) -> usize {
     costs[e.0][e.1].iter().map(|i| i.cost).min().unwrap()
 }
 
-fn task_two(_input: &[String]) -> usize {
-    0
+fn calculate_cost2(map: &mut [Vec<char>], start: (usize, usize)) -> usize {
+    // init
+    let s = Tile {
+        pos: start,
+        dir: (0, 1),
+        cost: 0,
+    };
+
+    let mut unvisited: BinaryHeap<Tile> = BinaryHeap::default();
+    unvisited.push(s);
+
+    let mut visited: Vec<Vec<Vec<Info>>> = vec![
+        vec![
+            vec![
+                Info {
+                    cost: usize::MAX,
+                    prev: (0, 0)
+                };
+                4
+            ];
+            map[0].len()
+        ];
+        map.len()
+    ];
+    visited[s.pos.0][s.pos.1][dir_to_idx(s.dir)].cost = 0;
+
+    let mut from: HashMap<((usize, usize), (isize, isize)), HashSet<((usize, usize), (isize, isize))>> = HashMap::default();
+
+    // dijkstra
+    while let Some(current) = unvisited.pop() {
+        for (np, nd) in get_neighbours(&map, current.pos) {
+            let nc;
+            if nd == current.dir {
+                nc = current.cost + 1;
+            } else {
+                nc = current.cost + 1001;
+            }
+
+            let n = Tile {
+                pos: np,
+                dir: nd,
+                cost: nc,
+            };
+
+            let idx = dir_to_idx(n.dir);
+            if n.cost < visited[n.pos.0][n.pos.1][idx].cost {
+                visited[n.pos.0][n.pos.1][idx].cost = n.cost;
+                visited[n.pos.0][n.pos.1][idx].prev = current.pos;
+                unvisited.push(n);
+
+                from.entry((np, nd)).or_insert(HashSet::new()).clear();
+                from.get_mut(&(np, nd)).unwrap().insert((current.pos, current.dir));
+            } else if n.cost <= visited[n.pos.0][n.pos.1][idx].cost {
+                from.entry((np, nd)).or_insert(HashSet::new()).insert((current.pos, current.dir));
+            }
+        }
+    }
+
+    // backtrack
+    let e = (1, map[1].len() - 2);
+    let mut lowest = visited[e.0][e.1][0].cost;
+    let mut dir = 0;
+    for i in 1..4 {
+        if visited[e.0][e.1][i].cost < lowest {
+            lowest = visited[e.0][e.1][i].cost;
+            dir = i;
+        }
+    }
+
+    let mut stack: Vec<((usize, usize), (isize, isize))> = vec![((1, map.len() - 2), DIRS[dir])];
+    let mut paths: HashSet<(usize, usize)> = HashSet::default();
+    while let Some(current) = stack.pop() {
+        paths.insert(current.0);
+
+        if current.0 == start {
+            continue;
+        }
+
+        for f in from.get(&current).unwrap() {
+            stack.push(*f);
+        }
+    }
+
+    paths.len()
+}
+
+fn task_two(input: &[String]) -> usize {
+    let mut map: Vec<Vec<_>> = input.iter().map(|line| line.chars().collect()).collect();
+
+    let e = (1, map[1].len() - 2);
+    let s = (map.len() - 2, 1);
+
+    map[e.0][e.1] = '.';
+    map[s.0][s.1] = '.';
+
+    calculate_cost2(&mut map, s)
 }
 
 fn main() {
