@@ -12,9 +12,7 @@ fn get_combo_value(registers: &[usize], operand: usize) -> usize {
     }
 }
 
-fn task_one(input: &[String]) -> usize {
-    let (mut registers, program) = parse_input(input);
-
+fn run_program(registers: &mut [usize], program: &[usize]) -> Vec<usize> {
     let mut output: Vec<usize> = vec![];
 
     let mut pointer = 0;
@@ -52,15 +50,36 @@ fn task_one(input: &[String]) -> usize {
         }
     }
 
-    let out_string: String = output.iter().map(|o| o.to_string()).collect::<Vec<String>>().join(",");
-    println!("{}", out_string);
+    output
+}
 
+fn task_one(input: &[String]) -> usize {
+    let (mut registers, program) = parse_input(input);
+    println!("{}", run_program(&mut registers, &program).iter().map(|o| o.to_string()).collect::<Vec<String>>().join(","));
     0
 }
 
+fn task_two(input: &[String]) -> usize {
+    let (mut registers, program) = parse_input(input);
 
-fn task_two(_input: &[String]) -> usize {
-    0
+    let mut candidates = vec![0];
+    for l in 0..program.len() {
+        let mut next_candidates = vec![];
+        for val in candidates {
+            for i in 0..8usize {
+                let target = (val << 3) + i;
+                registers[0] = target;
+                registers[1] = 0;
+                registers[2] = 0;
+                if run_program(&mut registers, &program) == program[(program.len() - l - 1)..] {
+                    next_candidates.push(target);
+                }
+            }
+        }
+        candidates = next_candidates;
+    }
+
+    *candidates.iter().min().unwrap()
 }
 
 fn main() {
