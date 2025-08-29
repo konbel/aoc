@@ -64,14 +64,36 @@ fn find_min_steps(map: &[Vec<bool>], start: (usize, usize), end: (usize, usize))
     0
 }
 
+const MAX_COORDS: usize = 70;
+const NUM_BYTES: usize = 1024;
+
 fn task_one(input: &[String]) -> usize {
-    const MAX_COORDS: usize = 70;
-    const NUM_BYTES: usize = 1024;
     let map = create_map(input, MAX_COORDS, NUM_BYTES);
     find_min_steps(&map, (0, 0), (MAX_COORDS, MAX_COORDS))
 }
 
-fn task_two(_input: &[String]) -> usize {
+fn task_two(input: &[String]) -> usize {
+    let mut map = create_map(input, MAX_COORDS, NUM_BYTES);
+
+    // get remaining byte coords
+    let mut bytes = input[NUM_BYTES..].iter().map(|line| {
+        let mut iter = line.split(",");
+        let x = iter.next().unwrap().parse::<usize>().unwrap();
+        let y = iter.next().unwrap().parse::<usize>().unwrap();
+        (x, y)
+    }).rev().collect::<Vec<(usize, usize)>>();
+
+    // remove one byte after another and check if a path exists
+    while let Some((bx, by)) = bytes.pop() {
+        map[by][bx] = true;
+
+        // check if no path was found
+        if find_min_steps(&map, (0, 0), (MAX_COORDS, MAX_COORDS)) == 0 {
+            println!("{},{}", bx, by);
+            return 0;
+        }
+    }
+
     0
 }
 
