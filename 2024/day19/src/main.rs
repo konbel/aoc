@@ -15,14 +15,33 @@ fn is_possible(available: &[String], desired: &String) -> bool {
     dp[desired.len()]
 }
 
+fn num_possibilities(available: &[String], desired: &String) -> usize {
+    let mut dp: Vec<usize> = vec![0; desired.len() + 1];
+    dp[0] = 1;
+
+    for i in 0..desired.len() {
+        if dp[i] > 0 {
+            for word in available {
+                if desired[i..].starts_with(word) {
+                    dp[i + word.len()] += dp[i];
+                }
+            }
+        }
+    }
+
+    dp[desired.len()]
+}
+
 fn task_one(input: &[String]) -> usize {
     let available = input[0].split(", ").map(|s| s.to_owned()).collect::<Vec<String>>();
     let desired = input[2..].iter().map(|s| s.to_owned()).collect::<Vec<String>>();
     desired.iter().filter(|d| is_possible(&available, d)).count()
 }
 
-fn task_two(_input: &[String]) -> usize {
-    0
+fn task_two(input: &[String]) -> usize {
+    let available = input[0].split(", ").map(|s| s.to_owned()).collect::<Vec<String>>();
+    let desired = input[2..].iter().map(|s| s.to_owned()).collect::<Vec<String>>();
+    desired.iter().map(|d| num_possibilities(&available, d)).sum()
 }
 
 fn main() {
