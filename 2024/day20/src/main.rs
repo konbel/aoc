@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 const DIRS: [(isize, isize); 4] = [(-1, 0), (0, 1), (1, 0), (0, -1)];
 
@@ -62,36 +62,35 @@ fn get_path(map: &[Vec<char>], start: (usize, usize), end: (usize, usize)) -> Ha
     path
 }
 
-fn get_possible_cheats_in_pos(map: &[Vec<char>], current: (usize, usize)) -> Vec<((usize, usize), usize)> {
-    let mut cheat_tiles = vec![];
+fn get_possible_cheats_in_pos(map: &[Vec<char>], current: (usize, usize), cheat_time: usize) -> Vec<((usize, usize), usize)> {
+    let mut cheat_tiles: Vec<((usize, usize), usize)> = vec![];
+    let mut seen_tiles: HashSet<(usize, usize)> = HashSet::default();
 
-    for neighbor in get_neighbors(map, current) {
-        // up to two picoseconds means exactly two in this context, so this is not needed
-        // insert direct neighbor if not wall tile
-        // if map[neighbor.0][neighbor.1] != '#' {
-        //     cheat_tiles.push((neighbor, 1_usize));
-        // }
+    let mut last_layer = vec![current];
+    for time in 1..=cheat_time {
+        let mut current_layer = vec![];
+        for tile in last_layer {
+            for neighbor in get_neighbors(map, tile) {
+                if seen_tiles.insert(neighbor) {
+                    current_layer.push(neighbor);
 
-        // insert neighbor of neighbor if not wall tile
-        for new_pos in get_neighbors(map, neighbor) {
-            if new_pos == current {
-                continue;
-            }
-
-            if map[new_pos.0][new_pos.1] != '#' {
-                cheat_tiles.push((new_pos, 2_usize));
+                    if map[neighbor.0][neighbor.1] != '#' {
+                        cheat_tiles.push((neighbor, time));
+                    }
+                }
             }
         }
+        last_layer = current_layer;
     }
 
     cheat_tiles
 }
 
-fn get_all_cheats(map: &[Vec<char>], path: &HashMap<(usize, usize), usize>) -> HashMap<((usize, usize), (usize, usize)), usize> {
+fn get_all_cheats(map: &[Vec<char>], path: &HashMap<(usize, usize), usize>, cheat_time: usize) -> HashMap<((usize, usize), (usize, usize)), usize> {
     let mut cheats: HashMap<((usize, usize), (usize, usize)), usize> = HashMap::default();
 
     for current in path {
-        for cheat in get_possible_cheats_in_pos(&map, *current.0) {
+        for cheat in get_possible_cheats_in_pos(&map, *current.0, cheat_time) {
             let cheat_time = current.1 + cheat.1;
             let path_time = path[&cheat.0];
 
@@ -111,13 +110,19 @@ fn task_one(input: &[String]) -> usize {
     let (start, end) = get_start_end(&map);
     
     let path = get_path(&map, start, end);
-    let cheats = get_all_cheats(&map, &path);
+    let cheats = get_all_cheats(&map, &path, 2);
 
     cheats.values().filter(|time_save| time_save >= &&100).count()
 }
 
-fn task_two(_input: &[String]) -> usize {
-    0
+fn task_two(input: &[String]) -> usize {
+    let map = input.iter().map(|s| s.chars().collect()).collect::<Vec<Vec<char>>>();
+    let (start, end) = get_start_end(&map);
+    
+    let path = get_path(&map, start, end);
+    let cheats = get_all_cheats(&map, &path, 20);
+
+    cheats.values().filter(|time_save| time_save >= &&100).count()
 }
 
 fn main() {
