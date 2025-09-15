@@ -125,8 +125,27 @@ fn task_one(input: &[String]) -> usize {
     complexity
 }
 
-fn task_two(_input: &[String]) -> usize {
-    0
+fn task_two(input: &[String]) -> usize {
+    let numpad_sequences = calculate_sequences(&NUMPAD);
+    let dirpad_sequences = calculate_sequences(&DIRPAD);
+
+    let mut dir_lengths = HashMap::new();
+    for (&key, value) in &dirpad_sequences {
+        dir_lengths.insert(key, value[0].len());
+    }
+
+    let mut complexity = 0;
+
+    for code in input {
+        let moves = calculate_moves(code, &numpad_sequences);
+        let length = moves.into_iter().map(|seq| calculate_length(&dirpad_sequences, &dir_lengths, &seq, 25)).min().unwrap();
+
+        let code_num = code.chars().filter(|c| c.is_numeric()).collect::<String>().parse::<usize>().unwrap_or(0);
+        // println!("{}: {} * {}", code, length, code_num);
+        complexity += length * code_num;
+    }
+    
+    complexity
 }
 
 fn main() {
