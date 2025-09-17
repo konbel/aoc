@@ -46,7 +46,33 @@ fn task_one(input: &[String]) -> usize {
     }).count()
 }
 
-fn task_two(_input: &[String]) -> usize {
+fn find_biggest_group(network: &HashMap<String, HashSet<String>>) -> Vec<String> {
+    let mut biggest = HashSet::new();
+
+    for (computer, connections) in network {
+        let mut current: HashSet<String> = HashSet::from([computer.clone()]);
+
+        for connection in connections {
+            if current.iter().all(|c| network.get(connection).unwrap().contains(c)) {
+                current.insert(connection.clone());
+            }
+        }
+
+        if current.len() > biggest.len() {
+            biggest = current;
+        }
+    }
+
+    biggest.into_iter().collect()
+}
+
+fn task_two(input: &[String]) -> usize {
+    let network = build_network(input);
+
+    let mut biggest_group = find_biggest_group(&network);
+    biggest_group.sort();
+    println!("{}", biggest_group.join(","));
+
     0
 }
 
