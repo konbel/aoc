@@ -1,5 +1,7 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::hash::Hash;
 
+#[derive(Clone, PartialEq)]
 enum Operation {
     None,
     And,
@@ -7,6 +9,7 @@ enum Operation {
     Xor,
 }
 
+#[derive(Clone)]
 struct Instruction {
     input1: String,
     input2: String,
@@ -23,7 +26,10 @@ fn get_initial_wire_state(input: &[String]) -> HashMap<String, Option<usize>> {
     wires
 }
 
-fn get_instructions(input: &[String], wires: &mut HashMap<String, Option<usize>>) -> Vec<Instruction> {
+fn get_instructions(
+    input: &[String],
+    wires: &mut HashMap<String, Option<usize>>,
+) -> Vec<Instruction> {
     let mut instructions: Vec<Instruction> = vec![];
 
     for instruction in input.iter() {
@@ -53,13 +59,21 @@ fn get_instructions(input: &[String], wires: &mut HashMap<String, Option<usize>>
         }
 
         // create instruction
-        instructions.push(Instruction { input1, input2, output, operation });
+        instructions.push(Instruction {
+            input1,
+            input2,
+            output,
+            operation,
+        });
     }
 
     instructions
 }
 
-fn handle_instructions(wires: &mut HashMap<String, Option<usize>>, instructions: &mut Vec<Instruction>) {
+fn handle_instructions(
+    wires: &mut HashMap<String, Option<usize>>,
+    instructions: &mut Vec<Instruction>,
+) {
     while !instructions.is_empty() {
         instructions.retain(|instruction| {
             let input1 = wires.get(&instruction.input1).unwrap();
@@ -73,13 +87,33 @@ fn handle_instructions(wires: &mut HashMap<String, Option<usize>>, instructions:
             let input2 = input2.unwrap();
 
             let res: usize = match instruction.operation {
-                Operation::And => if input1 == 1 && input2 == 1 { 1 } else { 0 },
-                Operation::Or => if input1 == 1 || input2 == 1 { 1 } else { 0 },
-                Operation::Xor => if input1 != input2 { 1 } else { 0 },
+                Operation::And => {
+                    if input1 == 1 && input2 == 1 {
+                        1
+                    } else {
+                        0
+                    }
+                }
+                Operation::Or => {
+                    if input1 == 1 || input2 == 1 {
+                        1
+                    } else {
+                        0
+                    }
+                }
+                Operation::Xor => {
+                    if input1 != input2 {
+                        1
+                    } else {
+                        0
+                    }
+                }
                 _ => panic!(),
             };
 
-            wires.entry(instruction.output.clone()).and_modify(|v| *v = Some(res));
+            wires
+                .entry(instruction.output.clone())
+                .and_modify(|v| *v = Some(res));
 
             return false;
         });
@@ -93,16 +127,203 @@ fn task_one(input: &[String]) -> usize {
 
     handle_instructions(&mut wires, &mut instructions);
 
-    let mut output_wires = wires.into_iter().filter(|(name, _)| name.starts_with('z')).collect::<Vec<(String, Option<usize>)>>();
+    let mut output_wires = wires
+        .into_iter()
+        .filter(|(name, _)| name.starts_with('z'))
+        .collect::<Vec<(String, Option<usize>)>>();
     output_wires.sort();
     output_wires.reverse();
 
-    let binary = &output_wires.iter().map(|wire| wire.1.unwrap().to_string()).collect::<String>();
+    let binary = &output_wires
+        .iter()
+        .map(|wire| wire.1.unwrap().to_string())
+        .collect::<String>();
     usize::from_str_radix(binary.as_str(), 2).unwrap()
 }
 
-fn task_two(_input: &[String]) -> usize {
+fn make_wire(c: char, num: usize) -> String {
+    format!("{}{:0>2}", c, num)
+}
+
+fn verify_z(instructions: &HashMap<String, Instruction>, wire: &str, num: usize) -> bool {
+    if let Some(instruction) = instructions.get(wire) {
+        if instruction.operation != Operation::Xor {
+            return false;
+        }
+        if num == 0 {
+            let lhs: HashSet<_> = vec![instruction.input1.to_owned(), instruction.input2.to_owned()]
+                .into_iter()
+                .collect();
+            let rhs: HashSet<_> = vec!["x00".to_string(), "y00".to_string()]
+                .into_iter()
+                .collect();
+            return lhs == rhs;
+        }
+        (verify_intermediate_xor(instructions, &instruction.input1, num)
+            && verify_carry_bit(instructions, &instruction.input2, num))
+            || (verify_intermediate_xor(instructions, &instruction.input2, num)
+                && verify_carry_bit(instructions, &instruction.input1, num))
+    } else {
+        false
+    }
+}
+
+fn verify_intermediate_xor(
+    instructions: &HashMap<String, Instruction>,
+    wire: &str,
+    num: usize,
+) -> bool {
+    if let Some(instruction) = instructions.get(wire) {
+        if instruction.operation != Operation::Xor {
+            return false;
+        }
+        let lhs: HashSet<_> = vec![instruction.input1.to_owned(), instruction.input2.to_owned()]
+            .into_iter()
+            .collect();
+        let rhs: HashSet<_> = vec![make_wire('x', num), make_wire('y', num)]
+            .into_iter()
+            .collect();
+        lhs == rhs
+    } else {
+        false
+    }
+}
+
+fn verify_carry_bit(instructions: &HashMap<String, Instruction>, wire: &str, num: usize) -> bool {
+    if let Some(instruction) = instructions.get(wire) {
+        if num == 1 {
+            if instruction.operation != Operation::And {
+                return false;
+            }
+            let lhs: HashSet<_> = vec![instruction.input1.to_owned(), instruction.input2.to_owned()]
+                .into_iter()
+                .collect();
+            let rhs: HashSet<_> = vec!["x00".to_string(), "y00".to_string()]
+                .into_iter()
+                .collect();
+            return lhs == rhs;
+        }
+        if instruction.operation != Operation::Or {
+            return false;
+        }
+        (verify_direct_carry(instructions, &instruction.input1, num - 1)
+            && verify_recarry(instructions, &instruction.input2, num - 1))
+            || (verify_direct_carry(instructions, &instruction.input2, num - 1)
+                && verify_recarry(instructions, &instruction.input1, num - 1))
+    } else {
+        false
+    }
+}
+
+fn verify_direct_carry(instructions: &HashMap<String, Instruction>, wire: &str, num: usize) -> bool {
+    if let Some(instruction) = instructions.get(wire) {
+        if instruction.operation != Operation::And {
+            return false;
+        }
+        let lhs: HashSet<_> = vec![instruction.input1.to_owned(), instruction.input2.to_owned()]
+            .into_iter()
+            .collect();
+        let rhs: HashSet<_> = vec![make_wire('x', num), make_wire('y', num)]
+            .into_iter()
+            .collect();
+        lhs == rhs
+    } else {
+        false
+    }
+}
+
+fn verify_recarry(instructions: &HashMap<String, Instruction>, wire: &str, num: usize) -> bool {
+    if let Some(instruction) = instructions.get(wire) {
+        if instruction.operation != Operation::And {
+            return false;
+        }
+        (verify_intermediate_xor(instructions, &instruction.input1, num)
+            && verify_carry_bit(instructions, &instruction.input2, num))
+            || (verify_intermediate_xor(instructions, &instruction.input2, num)
+                && verify_carry_bit(instructions, &instruction.input1, num))
+    } else {
+        false
+    }
+}
+
+fn verify(instructions: &HashMap<String, Instruction>, num: usize) -> bool {
+    verify_z(instructions, &make_wire('z', num), num)
+}
+
+fn progress(instructions: &HashMap<String, Instruction>) -> usize {
+    let mut i = 0;
+    while verify(instructions, i) {
+        i += 1;
+    }
+    i
+}
+
+fn task_two(input: &[String]) -> usize {
+    let split_idx = input.iter().position(|s| s == &"").unwrap();
+    let mut instruction_lines = vec![];
+    for line in &input[(split_idx + 1)..] {
+        instruction_lines.push(line.to_owned());
+    }
+
+    let mut instructions = HashMap::new();
+    for line in instruction_lines {
+        let line = line.replace(" -> ", " ");
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        let (x, op, y, z) = (parts[0], parts[1], parts[2], parts[3]);
+        let operation = match op {
+            "XOR" => Operation::Xor,
+            "AND" => Operation::And,
+            "OR" => Operation::Or,
+            _ => Operation::None,
+        };
+        instructions.insert(
+            z.to_string(),
+            Instruction {
+                input1: x.to_string(),
+                input2: y.to_string(),
+                output: z.to_string(),
+                operation,
+            },
+        );
+    }
+
+    let mut swaps = Vec::new();
+
+    for _ in 0..4 {
+        let baseline = progress(&instructions);
+        'outer: for x in instructions.clone().keys() {
+            for y in instructions.clone().keys() {
+                if x == y {
+                    continue;
+                }
+                instructions.swap(x, y);
+                if progress(&instructions) > baseline {
+                    swaps.push(x.clone());
+                    swaps.push(y.clone());
+                    break 'outer;
+                }
+                instructions.swap(x, y);
+            }
+        }
+    }
+
+    swaps.sort();
+    println!("{}", swaps.join(","));
+
     0
+}
+
+trait SwapKeys<K, V> {
+    fn swap(&mut self, key1: &K, key2: &K);
+}
+
+impl<K: Eq + Hash + Clone, V: Clone> SwapKeys<K, V> for HashMap<K, V> {
+    fn swap(&mut self, key1: &K, key2: &K) {
+        if let (Some(v1), Some(v2)) = (self.get(key1).cloned(), self.get(key2).cloned()) {
+            self.insert(key1.clone(), v2);
+            self.insert(key2.clone(), v1);
+        }
+    }
 }
 
 fn main() {
