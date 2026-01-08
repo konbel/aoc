@@ -24,3 +24,5 @@ target
 Cargo.lock
 input
 test
+
+input/
